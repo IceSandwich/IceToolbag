@@ -14,7 +14,7 @@ class ICETB_OT_Marker_SwitchLayer(bpy.types.Operator):
         return True
 
     def execute(self, context):
-        print("switch to " + str(self.layerIdx + 1))
+        # print("switch to " + str(self.layerIdx + 1))
         layers_data, layers_curidx = MarkerLayer_Collection.getProperty(context, autocreate=True)
         layers_data[layers_curidx].parseFromCurrentScene(context, replace=True) #apply current markers to layer
         if layers_curidx != self.layerIdx:

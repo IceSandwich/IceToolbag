@@ -29,7 +29,9 @@ class ICETB_MT_Marker(bpy.types.Menu):
 
         # layout.label("version:1")
         layout.operator("icetb.marker_batch_rename")
+        layout.operator("icetb.marker_aligntomarker")
         layout.separator()
         layout.menu(ICETB_MT_SwitchLayer.bl_idname, text=ICETB_MT_SwitchLayer.bl_label + " (Current: %s)" % MarkerLayer_Collection.getCurrentLayerName(context))
         layout.operator("icetb.marker_rename_layer")
+        layout.operator("icetb.marker_beatmatch")
 

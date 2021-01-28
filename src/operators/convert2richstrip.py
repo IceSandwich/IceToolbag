@@ -1,7 +1,7 @@
 import bpy
 
-class ICETB_OT_Marker_ConvertToRichStrip(bpy.types.Operator):
-    bl_idname = "icetb.marker_convert_to_richstrip"
+class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
+    bl_idname = "icetb.convert_to_richstrip"
     bl_label = "Convert to Rich strip"
     bl_options = {"REGISTER", "UNDO"}
 
@@ -37,36 +37,42 @@ class ICETB_OT_Marker_ConvertToRichStrip(bpy.types.Operator):
             self.report({'ERROR'}, "Must contain one movie strip.")
             return {"FINISHED"}
 
-        bpy.ops.sequencer.meta_make()
-        meta_strip = context.scene.sequence_editor.active_strip
-        meta_strip.blend_type = "ALPHA_OVER"
-        bpy.ops.sequencer.meta_toggle()
-
-        MovieSeq.channel = 2
-        MovieSeq.use_proxy = False # we must read fps when not use proxy, otherwise we got 0
-        moviefps = MovieSeq.fps 
-        MovieSeq.use_proxy = True
-        if AudioSeq is not None:
-            AudioSeq.channel = 1
-            AudioSeq.select = False
-            AudioSeq.sound.use_memory_cache = True # A/V sync
-
-        # read scene fps, because the fps of scene will change automatically. i don't know why.
-        render_fps, render_fps_base = context.scene.render.fps, context.scene.render.fps_base
+        # read information
 
         meta_frameend = MovieSeq.frame_final_end
         if AudioSeq is not None:
             meta_frameend = AudioSeq.frame_final_end
+        MovieSeq.use_proxy = False # we must read fps when not use proxy, otherwise we got 0
+        moviefps = MovieSeq.fps
+        MovieSeq.use_proxy = True
 
-        # make submeta_strip, in submeta_strip, movie in channel 2, speed control in channel 3
+        # read scene fps, because the fps of scene will change automatically. i don't know why.
+        render_fps, render_fps_base = context.scene.render.fps, context.scene.render.fps_base
+
+        # assemsemby sequences
+
+        bpy.ops.sequencer.meta_make()
+        meta_strip = context.scene.sequence_editor.active_strip
+        meta_strip.blend_type = "ALPHA_OVER"
+        bpy.ops.sequencer.meta_toggle() # enter meta_strip
+
+        MovieSeq.channel = 2
+        if AudioSeq is not None:
+            AudioSeq.channel = 1
+            AudioSeq.select = True
+            AudioSeq.sound.use_memory_cache = True # A/V sync
+
+        # make submeta_strip, in submeta_strip, audio in channel 1, movie in channel 2, speed control in channel 3, adjustment in channel 4
         MovieSeq.select = True
+        # AudioSeq.select = True # we selected audioseq just now, we don't need to do it again.
         bpy.ops.sequencer.meta_make()
         submeta_strip = context.scene.sequence_editor.active_strip
-        submeta_strip.blend_type = "ALPHA_OVER"
+        # submeta_strip.blend_type = "ALPHA_OVER"
         bpy.ops.sequencer.meta_toggle() # enter submeta
 
         # add speed control to movieseq
         MovieSeq.select = True
+        AudioSeq.select = False
         bpy.ops.sequencer.effect_strip_add(type='SPEED', channel=3)
         speed_strip = context.scene.sequence_editor.active_strip
         speed_strip.multiply_speed = moviefps / (render_fps / render_fps_base)
@@ -96,11 +102,15 @@ class ICETB_OT_Marker_ConvertToRichStrip(bpy.types.Operator):
                 subspeed_strip.use_frame_interpolate = True
 
                 lastMovieSeq = SubMovieSeq
+        
+        # add adjustment layer
+        bpy.ops.sequencer.effect_strip_add(type='ADJUSTMENT', frame_start=MovieSeq.frame_final_start, frame_end=meta_frameend, channel=4)
 
         bpy.ops.sequencer.select_all(action='DESELECT')
         bpy.ops.sequencer.meta_toggle() # leave submeta_strip
 
         submeta_strip.frame_final_end = meta_frameend
+        submeta_strip.channel = 1
         
         bpy.ops.sequencer.select_all(action='DESELECT')
         bpy.ops.sequencer.meta_toggle() # leave meta_strip

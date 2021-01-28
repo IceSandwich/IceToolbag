@@ -24,4 +24,4 @@ class ICETB_MT_Main(bpy.types.Menu):
         # layout.label("version: 0.1 alpha")
         layout.separator()
         layout.menu("ICETB_MT_MARKER")
-        layout.operator('icetb.marker_convert_to_richstrip')
+        layout.operator('icetb.convert_to_richstrip')

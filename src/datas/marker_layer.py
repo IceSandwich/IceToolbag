@@ -65,12 +65,18 @@ class MarkerLayer_OneLayer(bpy.types.PropertyGroup):
             else:
                 return None, None
         return ctx.scene.IceTB_marker_layers_data, ctx.scene.IceTB_marker_layers_current
+
+    @classmethod
+    def applyCurrentMarkers(cls, context):
+        layers_data, layers_curidx = cls.getProperty(context, autocreate=True)
+        layers_data[layers_curidx].parseFromCurrentScene(context, replace=True)
         
     def parseFromCurrentScene(self, ctx, replace=True):
         # from bpy.context.scene import timeline_markers
         if replace:
             self.markers.clear()
-        for _, timeline_marker in ctx.scene.timeline_markers.items():
+        timeline_markers = sorted([ m for _, m in ctx.scene.timeline_markers.items() ], key=lambda m: m.frame )
+        for timeline_marker in timeline_markers:
             self.markers.add().parseFromTimelineMarker(timeline_marker)
 
     def loadToCurrentScene(self, ctx, clearBefore=True):
@@ -78,5 +84,5 @@ class MarkerLayer_OneLayer(bpy.types.PropertyGroup):
             ctx.scene.timeline_markers.clear()
         for marker in self.markers:
             marker.loadToTimelineMarker(ctx)
-        print("load to", self.layerIndex)
+        # print("load to", self.layerIndex)
         ctx.scene.IceTB_marker_layers_current = self.layerIndex
