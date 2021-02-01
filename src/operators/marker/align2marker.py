@@ -74,10 +74,10 @@ class ICETB_OT_Marker_AlignToMarker(bpy.types.Operator):
 
         if self.use_customframe == False and ( self.align_marker1 == self.align_marker2 or self.marker1_name == self.marker2_name ):
             self.report({'ERROR'}, "Sequence and marker should be different individually.")
-            return {'FINISHED'}
+            return {'CANCELLED'}
         if (marker1_frame < seq1.frame_final_start or marker1_frame > seq1.frame_final_end) or (marker2_frame < seq2.frame_final_start or marker2_frame > seq2.frame_final_end):
             self.report({'ERROR'}, "Marker don't inside of sequence. Cannot match them.")
-            return {'FINISHED'}
+            return {'CANCELLED'}
 
         if self.still_marker == "0":
             offset = marker1_frame - marker2_frame
@@ -98,19 +98,19 @@ class ICETB_OT_Marker_AlignToMarker(bpy.types.Operator):
 
         if (len(markers) != 1 and len(markers) != 2) or len(seqs) != 2:
             self.report({'ERROR'}, "Please just select 1 or 2 markers and 2 clips.")
-            return {'FINISHED'}
+            return {'CANCELLED'}
         if len(markers) == 2 and markers[0] == markers[1]:
             self.report({'ERROR'}, "The markers should not has the same name.")
-            return {'FINISHED'}
+            return {'CANCELLED'}
         self.marker1_name = markers[0]
         self.marker2_name = markers[1] if len(markers) == 2 else 'Current Frame'
         
         if seqs[0].channel == seqs[1].channel:
             self.report({'ERROR'}, "All selected clips must have different channel.")
-            return {'FINISHED'}
+            return {'CANCELLED'}
         if seqs[0].name == seqs[1].name:
             self.report({'ERROR'}, "The sequences should not has the same name.")
-            return {'FINISHED'}
+            return {'CANCELLED'}
         self.seq1_name = seqs[0].name
         self.seq2_name = seqs[1].name
 

@@ -1,4 +1,5 @@
 import bpy
+from ..datas.richstrip import RichStripData
 
 class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
     bl_idname = "icetb.convert_to_richstrip"
@@ -12,7 +13,7 @@ class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
     def execute(self, context):
         if len(context.selected_sequences) > 2 or len(context.selected_sequences) == 0:
             self.report({'ERROR'}, "Please select one or two strips.")
-            return {"FINISHED"}
+            return {"CANCELLED"}
         
         MovieSeq = None
         AudioSeq = None
@@ -21,21 +22,21 @@ class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
             if seq.type == 'MOVIE':
                 if MovieSeq is not None:
                     self.report({'ERROR'}, "You should select a movie strip and a audio strip.")
-                    return {"FINISHED"}
+                    return {"CANCELLED"}
                 else:
                     MovieSeq = seq
             elif seq.type == 'SOUND':
                 if AudioSeq is not None:
                     self.report({'ERROR'}, "You should select a movie strip and a audio strip.")
-                    return {"FINISHED"}
+                    return {"CANCELLED"}
                 else:
                     AudioSeq = seq
             else:
                 self.report({'ERROR'}, "Unknow strip type: %s" % seq.type)
-                return {"FINISHED"}
+                return {"CANCELLED"}
         if MovieSeq is None:
             self.report({'ERROR'}, "Must contain one movie strip.")
-            return {"FINISHED"}
+            return {"CANCELLED"}
 
         # read information
 
@@ -102,20 +103,22 @@ class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
                 subspeed_strip.use_frame_interpolate = True
 
                 lastMovieSeq = SubMovieSeq
-        
-        # add adjustment layer
-        bpy.ops.sequencer.effect_strip_add(type='ADJUSTMENT', frame_start=MovieSeq.frame_final_start, frame_end=meta_frameend, channel=4)
 
+        AudioSeq.name = "GlobalBaseAudioStrip"
+        
         bpy.ops.sequencer.select_all(action='DESELECT')
         bpy.ops.sequencer.meta_toggle() # leave submeta_strip
 
         submeta_strip.frame_final_end = meta_frameend
         submeta_strip.channel = 1
+        submeta_strip.name = "FirstLayerRichStrip"
         
         bpy.ops.sequencer.select_all(action='DESELECT')
         bpy.ops.sequencer.meta_toggle() # leave meta_strip
 
         meta_strip.frame_final_end = meta_frameend
+        meta_strip.select = True
+        RichStripData.initProperty(meta_strip, MovieSeq, AudioSeq)
 
         # i don't know why the fps of blender will change automatically. we need to recover them.
         context.scene.render.fps = render_fps

@@ -33,7 +33,7 @@ class ICETB_OT_Marker_BatchRename(bpy.types.Operator):
         self.markers = sorted([ marker for _, marker in context.scene.timeline_markers.items() if marker.select ], key=lambda m: m.frame)
         if len(self.markers) == 0:
             self.report({'ERROR'}, "No markers selected.")
-            return {"FINISHED"}
+            return {"CANCELLED"}
 
         wm = context.window_manager
         return wm.invoke_props_dialog(self)

@@ -26,6 +26,7 @@ bl_info = {
 }
 
 classes = ICETB_CLASSES
+seqmsgbus = ICETB_MSGBUS
 
 seqPreview_km = None # Key map for sequence preview window
 addon_keymaps = []
@@ -44,8 +45,20 @@ def register():
             cls.setupMenu(True)
         if 'setupProperty' in dir(cls):
             cls.setupProperty(True)
+
+    def updateSequenceViewport():
+        bpy.ops.sequencer.refresh_all()
     
     addon_keymaps.append(seqPreview_km)
+
+    for msgbus in seqmsgbus:
+        bpy.msgbus.subscribe_rna(
+            key=msgbus,
+            owner=seqmsgbus,
+            args=(),
+            notify=updateSequenceViewport,
+        )
+    
 
 def unregister():
     for cls in reversed(classes):
@@ -60,3 +73,5 @@ def unregister():
         bpy.context.window_manager.keyconfigs.addon.keymaps.remove(km)
 
     addon_keymaps.clear()
+
+    bpy.msgbus.clear_by_owner(seqmsgbus)

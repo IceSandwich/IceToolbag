@@ -64,7 +64,7 @@ class ICETB_OT_Marker_BeatMatch(bpy.types.Operator):
 
         if len(movie_markers) != len(audio_markers):
             self.report({'ERROR'}, "The length of markers should be same.")
-            return {'FINISHED'}
+            return {'CANCELLED'}
 
         # align to marker
         movie_strip_framestart = MovieSeq.frame_final_start
@@ -134,11 +134,11 @@ class ICETB_OT_Marker_BeatMatch(bpy.types.Operator):
     def invoke(self, context, event):
         if len(context.selected_sequences) != 2:
             self.report({'ERROR'}, "You should select a movie strip and a audio strip.")
-            return {'FINISHED'}
+            return {'CANCELLED'}
 
         MovieSeq, AudioSeq = self.getMovieSeqAndAudioSeq(context)
         if MovieSeq is None or AudioSeq is None:
-            return {'FINISHED'} # already show error message in getMovieSeqAndAudioSeq function.
+            return {'CANCELLED'} # already show error message in getMovieSeqAndAudioSeq function.
 
         layer_data, _ = MarkerLayer_Collection.getProperty(context, autocreate=True)
         for layer in layer_data:
