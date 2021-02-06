@@ -20,7 +20,18 @@ class EffectBase():
         return
 
     @classmethod
-    def delete(cls, context, richstrip, data, effect):
+    def _update(cls, _type, identify, context):
+        richstrip = context.selected_sequences[0]
+        if type(richstrip) != bpy.types.MetaSequence: # some bug i don't know how to occur, just check if meta to solve right now.
+            return
+        firstlayer = richstrip.sequences.get("FirstLayerRichStrip")
+        data = richstrip.IceTB_richstrip_data
+        effect = data.getSelectedEffect()
+        cls.update(_type, identify, context, data, effect, firstlayer)
+        bpy.ops.sequencer.refresh_all()
+
+    @classmethod
+    def update(cls, type, identify, context, data, effect, firstlayer):
         return
 
     @classmethod

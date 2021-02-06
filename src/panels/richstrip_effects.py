@@ -34,6 +34,6 @@ class ICETB_PT_RichStripEffects(bpy.types.Panel):
 
         col = row.column(align=True)
         col.operator("wm.call_menu", icon="ADD", text="").name = "ICETB_MT_RICHSTRIP_ADD"
-        col.operator("wm.call_menu", icon='TRASH', text="")
-        col.operator("wm.call_menu", icon='TRIA_UP', text="") #.type = 'UP'
-        col.operator("wm.call_menu", icon='TRIA_DOWN', text="") #.type = 'DOWN'
+        col.operator("icetb.richstrip_deleffect", icon="TRASH", text="")
+        # col.operator("icetb.richstrip_mveffect", icon='TRIA_UP', text="").dire = 'UP'
+        # col.operator("icetb.richstrip_mveffect", icon='TRIA_DOWN', text="").dire = 'DOWN'

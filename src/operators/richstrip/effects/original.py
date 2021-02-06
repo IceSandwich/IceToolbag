@@ -28,7 +28,7 @@ class EffectOriginal(EffectBase):
 
         layout.label(text="Audio:")
         layout.prop(audiolayer, "volume")
-        layout.prop(audiolayer, "mute", toggle=1)
+        layout.prop(audiolayer, "mute", icon="MUTE_IPO_ON", toggle=1)
 
         layout.label(text="Movie Transform:")
         row = layout.row(align=True)

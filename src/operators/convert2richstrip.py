@@ -46,6 +46,7 @@ class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
         MovieSeq.use_proxy = False # we must read fps when not use proxy, otherwise we got 0
         moviefps = MovieSeq.fps
         MovieSeq.use_proxy = True
+        MovieSeq.frame_final_end = meta_frameend
 
         # read scene fps, because the fps of scene will change automatically. i don't know why.
         render_fps, render_fps_base = context.scene.render.fps, context.scene.render.fps_base
@@ -82,27 +83,27 @@ class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
         print("movie fps:", moviefps)
         print("speed:", speed_strip.multiply_speed)
 
-        if AudioSeq is not None:
-            lastMovieSeq = MovieSeq
+        # if AudioSeq is not None:
+        #     lastMovieSeq = MovieSeq
 
-            while lastMovieSeq.frame_final_end < AudioSeq.frame_final_end:
-                bpy.ops.sequencer.movie_strip_add(filepath=MovieSeq.filepath, relative_path=True, channel=2, sound=False, frame_start=lastMovieSeq.frame_final_end)
-                SubMovieSeq = context.scene.sequence_editor.active_strip
+        #     while lastMovieSeq.frame_final_end < AudioSeq.frame_final_end:
+        #         bpy.ops.sequencer.movie_strip_add(filepath=MovieSeq.filepath, relative_path=True, channel=2, sound=False, frame_start=lastMovieSeq.frame_final_end)
+        #         SubMovieSeq = context.scene.sequence_editor.active_strip
 
-                # shift sub movie sequence
-                offset = (lastMovieSeq.frame_final_end - MovieSeq.frame_final_start)*speed_strip.multiply_speed
-                bpy.ops.sequencer.slip(offset=-offset)
-                SubMovieSeq.frame_still_end = 0
-                SubMovieSeq.use_proxy = True
+        #         # shift sub movie sequence
+        #         offset = (lastMovieSeq.frame_final_end - MovieSeq.frame_final_start)*speed_strip.multiply_speed
+        #         bpy.ops.sequencer.slip(offset=-offset)
+        #         SubMovieSeq.frame_still_end = 0
+        #         SubMovieSeq.use_proxy = True
 
-                # add speed control for sub movie sequence
-                SubMovieSeq.select = True
-                bpy.ops.sequencer.effect_strip_add(type='SPEED', channel=3)
-                subspeed_strip = context.scene.sequence_editor.active_strip
-                subspeed_strip.multiply_speed = speed_strip.multiply_speed
-                subspeed_strip.use_frame_interpolate = True
+        #         # add speed control for sub movie sequence
+        #         SubMovieSeq.select = True
+        #         bpy.ops.sequencer.effect_strip_add(type='SPEED', channel=3)
+        #         subspeed_strip = context.scene.sequence_editor.active_strip
+        #         subspeed_strip.multiply_speed = speed_strip.multiply_speed
+        #         subspeed_strip.use_frame_interpolate = True
 
-                lastMovieSeq = SubMovieSeq
+        #         lastMovieSeq = SubMovieSeq
 
         AudioSeq.name = "GlobalBaseAudioStrip"
         

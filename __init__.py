@@ -18,7 +18,7 @@ bl_info = {
     "name" : "IceToolbag",
     "author" : "IceSandwich",
     "description" : "",
-    "blender" : (2, 80, 0),
+    "blender" : (2, 91, 0),
     "version" : (0, 0, 1),
     "location" : "",
     "warning" : "",
@@ -36,7 +36,8 @@ def register():
     global addon_keymaps
     
     kcfg = bpy.context.window_manager.keyconfigs.addon
-    seqPreview_km = kcfg.keymaps.new(name="IceToolbag_seqPreview", space_type="SEQUENCE_EDITOR", region_type="WINDOW")
+    if kcfg is not None:
+        seqPreview_km = kcfg.keymaps.new(name="IceToolbag_seqPreview", space_type="SEQUENCE_EDITOR", region_type="WINDOW")
     for cls in classes:
         bpy.utils.register_class(cls)
         if kcfg and 'setupKey' in dir(cls):
@@ -49,7 +50,8 @@ def register():
     def updateSequenceViewport():
         bpy.ops.sequencer.refresh_all()
     
-    addon_keymaps.append(seqPreview_km)
+    if kcfg is not None:
+        addon_keymaps.append(seqPreview_km)
 
     for msgbus in seqmsgbus:
         bpy.msgbus.subscribe_rna(

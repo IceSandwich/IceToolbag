@@ -1,6 +1,6 @@
 import bpy
 
-class IntProperty(bpy.types.PropertyGroup):
+class FloatProperty(bpy.types.PropertyGroup):
     effectbelong: bpy.props.StringProperty(name="The parent", default="")
     effectidentify: bpy.props.IntProperty(name="The identify number for update event")
 
@@ -12,6 +12,6 @@ class IntProperty(bpy.types.PropertyGroup):
             
     def updateitem(self, context):
         if self.effectbelong != "":
-            bpy.ops.icetb.richstrip_eventdelegate(effectName=self.effectbelong, eventType="INT", eventIdentify=self.effectidentify)
+            bpy.ops.icetb.richstrip_eventdelegate(effectName=self.effectbelong, eventType="FLOAT", eventIdentify=self.effectidentify)
 
-    value: bpy.props.IntProperty(name="Integer Value", update=updateitem)
+    value: bpy.props.FloatProperty(name="Float Value", update=updateitem)

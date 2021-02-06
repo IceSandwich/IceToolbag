@@ -1,6 +1,8 @@
 import bpy
 from ..datas.string_prop import StringProperty
 from ..datas.int_prop import IntProperty
+from ..datas.enum_prop import EnumProperty
+from ..datas.float_prop import FloatProperty
 
 class RichStripEffect(bpy.types.PropertyGroup):
     EffectName: bpy.props.StringProperty(name="The name of effect", default="Untitled effect")
@@ -15,6 +17,8 @@ class RichStripEffect(bpy.types.PropertyGroup):
 
     EffectStrProperties: bpy.props.CollectionProperty(type=StringProperty)
     EffectIntProperties: bpy.props.CollectionProperty(type=IntProperty)
+    EffectFloatProperties: bpy.props.CollectionProperty(type=FloatProperty)
+    EffectEnumProperties: bpy.props.CollectionProperty(type=EnumProperty)
 
 class RichStripData(bpy.types.PropertyGroup):
     # RichStrip information
@@ -95,6 +99,9 @@ class RichStripData(bpy.types.PropertyGroup):
     
     def getSelectedEffect(self):
         return self.Effects[self.EffectsCurrent]
+
+    def getLastEffect(self):
+        return self.Effects[-1]
 
     def getSelectedEffectType(self):
         return self.getSelectedEffect().EffectType
