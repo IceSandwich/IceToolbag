@@ -13,7 +13,8 @@ class EffectFastBlur(EffectBase):
 
     @classmethod
     def add(cls, context, richstrip, data, effect):
-        effectlast = data.Effects[-2].EffectStrips[-1].value
+        # effectlast = data.Effects[-2].EffectStrips[-1].value
+        effectlast = data.getSelectedEffect().EffectStrips[-1].value
         strips, fstart, fend = cls.enterFistLayer(richstrip)
 
         data.EffectCurrentMaxChannel1 += 1
@@ -21,9 +22,14 @@ class EffectFastBlur(EffectBase):
         bpy.ops.sequencer.effect_strip_add(type='TRANSFORM', frame_start=fstart, frame_end=fend, channel=data.EffectCurrentMaxChannel1)
         transsmlayer = context.scene.sequence_editor.active_strip
         transsmlayer.blend_type = 'ALPHA_UNDER'
-        # transsmlayer.use_uniform_scale = True
-        transsmlayer.scale_start_x = 1 / 200
-        transsmlayer.scale_start_y = (data.ResolutionWidth / data.ResolutionHeight) * transsmlayer.scale_start_x
+        transsmlayer.use_uniform_scale = True
+        transsmlayer.scale_start_x = transsmlayer.scale_start_y = 1 / 200
+        # if data.ResolutionWidth < data.ResolutionHeight:
+        #     transsmlayer.scale_start_x = 1 / 200
+        #     transsmlayer.scale_start_y = (data.ResolutionWidth / data.ResolutionHeight) * transsmlayer.scale_start_x
+        # else:
+        #     transsmlayer.scale_start_y = 1 / 200
+        #     transsmlayer.scale_start_x = (data.ResolutionHeight / data.ResolutionWidth) * transsmlayer.scale_start_y
         transsmlayer.interpolation = 'NONE'
         transsmlayer.name = cls.genRegularStripName(effect.EffectId, "sm")
 
@@ -50,6 +56,7 @@ class EffectFastBlur(EffectBase):
         data.EffectCurrentMaxChannel1 += 1
         bpy.ops.sequencer.effect_strip_add(type='ADJUSTMENT', frame_start=fstart, frame_end=fend, channel=data.EffectCurrentMaxChannel1)
         adjustlayer = context.scene.sequence_editor.active_strip
+        adjustlayer.use_translation = True
         adjustlayer.name = cls.genRegularStripName(effect.EffectId, "adjust")
 
         effect.EffectStrips.add().value = transsmlayer.name
@@ -90,8 +97,13 @@ class EffectFastBlur(EffectBase):
             scale_factor = effect.EffectFloatProperties[0].value
             scale_fix = effect.EffectFloatProperties[1].value
 
-            smtranf.scale_start_x = 1 / scale_factor
-            smtranf.scale_start_y = (data.ResolutionWidth / data.ResolutionHeight) * smtranf.scale_start_x
+            # if data.ResolutionWidth < data.ResolutionHeight:
+            #     smtranf.scale_start_x = 1 / scale_factor
+            #     smtranf.scale_start_y = (data.ResolutionWidth / data.ResolutionHeight) * smtranf.scale_start_x
+            # else:
+            #     smtranf.scale_start_y = 1 / scale_factor
+            #     smtranf.scale_start_x = (data.ResolutionHeight / data.ResolutionWidth) * smtranf.scale_start_y
+            smtranf.scale_start_x = smtranf.scale_start_y = 1 / scale_factor
 
             lgtranf.scale_start_x = 1 / smtranf.scale_start_y * scale_fix
             lgtranf.scale_start_y = 1 / smtranf.scale_start_y * scale_fix

@@ -74,7 +74,8 @@ class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
 
         # add speed control to movieseq
         MovieSeq.select = True
-        AudioSeq.select = False
+        if AudioSeq is not None:
+            AudioSeq.select = False
         bpy.ops.sequencer.effect_strip_add(type='SPEED', channel=3)
         speed_strip = context.scene.sequence_editor.active_strip
         speed_strip.multiply_speed = moviefps / (render_fps / render_fps_base)
@@ -105,7 +106,8 @@ class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
 
         #         lastMovieSeq = SubMovieSeq
 
-        AudioSeq.name = "GlobalBaseAudioStrip"
+        if AudioSeq is not None:
+            AudioSeq.name = "GlobalBaseAudioStrip"
         
         bpy.ops.sequencer.select_all(action='DESELECT')
         bpy.ops.sequencer.meta_toggle() # leave submeta_strip

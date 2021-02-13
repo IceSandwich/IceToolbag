@@ -10,6 +10,7 @@ class RichStripEffect(bpy.types.PropertyGroup):
 
     EffectIndex: bpy.props.IntProperty(name="The index of effect in list", default=-1)
     EffectId: bpy.props.IntProperty(name="Unique id of effect", default=-1)
+    EffectInputId: bpy.props.IntProperty(name="Effect input effect in index", default=-1)
 
     # the following are what you need to parse in operator func.
 
@@ -92,6 +93,7 @@ class RichStripData(bpy.types.PropertyGroup):
         effect = self.Effects.add()
         effect.EffectType = effectType
         effect.EffectIndex = len(self.Effects)
+        effect.EffectInputId = self.EffectsCurrent
         effect.EffectId = self.EfeectsCounter
         effect.EffectName = effectType + "_" + str(effect.EffectId)
         self.EfeectsCounter += 1

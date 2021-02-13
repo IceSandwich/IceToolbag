@@ -26,7 +26,14 @@ class ICETB_PT_RichStripEffect(bpy.types.Panel):
         layout = self.layout
 
         data = context.selected_sequences[0].IceTB_richstrip_data
-        seleffecttype = data.getSelectedEffectType()
+        curidx = data.EffectsCurrent
+        seleffecttype = data.Effects[curidx].EffectType
+        # seleffecttype = data.getSelectedEffectType()
+    
         layout.label(text="Type: " + seleffecttype)
+        if curidx == 0:
+            layout.label(text="Input: Disk Sequences")
+        else:
+            layout.label(text="Input: " + data.Effects[data.Effects[curidx].EffectInputId].EffectName)
     
         ICETB_EFFECTS_DICTS[seleffecttype]._draw(context, layout)

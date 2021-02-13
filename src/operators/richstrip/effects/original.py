@@ -24,19 +24,20 @@ class EffectOriginal(EffectBase):
     @classmethod
     def draw(cls, context, layout, data, effect, firstlayer):
         audiolayer = firstlayer.sequences.get("GlobalBaseAudioStrip")
-        adjustlayer = firstlayer.sequences.get(effect.EffectStrips[-1].value)
+        # adjustlayer = firstlayer.sequences.get(effect.EffectStrips[-1].value)
 
-        layout.label(text="Audio:")
-        layout.prop(audiolayer, "volume")
-        layout.prop(audiolayer, "mute", icon="MUTE_IPO_ON", toggle=1)
+        if audiolayer is not None:
+            layout.label(text="Audio:")
+            layout.prop(audiolayer, "volume")
+            layout.prop(audiolayer, "mute", icon="MUTE_IPO_ON", toggle=1)
 
-        layout.label(text="Movie Transform:")
-        row = layout.row(align=True)
-        adjustoffset = adjustlayer.transform
-        row.prop(adjustoffset, "offset_x", text="X")
-        row.prop(adjustoffset, "offset_y", text="Y")
+        # layout.label(text="Movie Transform:")
+        # row = layout.row(align=True)
+        # adjustoffset = adjustlayer.transform
+        # row.prop(adjustoffset, "offset_x", text="X")
+        # row.prop(adjustoffset, "offset_y", text="Y")
 
-        layout.label(text="Movie Color:")
-        layout.prop(adjustlayer, "color_saturation")
-        layout.prop(adjustlayer, "color_multiply")
+        # layout.label(text="Movie Color:")
+        # layout.prop(adjustlayer, "color_saturation")
+        # layout.prop(adjustlayer, "color_multiply")
         return

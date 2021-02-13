@@ -28,6 +28,7 @@ class EffectCopy(EffectBase):
         data.EffectCurrentMaxChannel1 += 1
         bpy.ops.sequencer.effect_strip_add(type='ADJUSTMENT', frame_start=fstart, frame_end=fend, channel=data.EffectCurrentMaxChannel1)
         adjustlayer = context.scene.sequence_editor.active_strip
+        adjustlayer.use_translation = True
         adjustlayer.name = cls.genRegularStripName(effect.EffectId, "adjust")
 
         effect.EffectStrips.add().value = translayer.name
@@ -52,9 +53,11 @@ class EffectCopy(EffectBase):
 
         layout.prop(effect.EffectEnumProperties[0], "value", text="Resize")
         layout.prop(tranf, "blend_type", text="Blend")
+
+        layout.label(text="Scale:")
         row = layout.row(align=True)
-        row.prop(effect.EffectFloatProperties[0], "value", text="Scale X")
-        row.prop(effect.EffectFloatProperties[1], "value", text="Scale Y")
+        row.prop(effect.EffectFloatProperties[0], "value", text="X")
+        row.prop(effect.EffectFloatProperties[1], "value", text="Y")
 
         layout.label(text="Position:")
         row = layout.row(align=True)
