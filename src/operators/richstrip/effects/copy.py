@@ -1,5 +1,6 @@
 import bpy
 from .base import EffectBase
+from .widgets import xylock
 
 class EffectCopy(EffectBase):
     """
@@ -8,6 +9,8 @@ class EffectCopy(EffectBase):
         EffectFloatProperties:
             [0]: Scale X
             [1]: Scale Y
+        EffectBoolProperties:
+            [0]: Union Scale?
     """
     @classmethod
     def getName(cls):
@@ -28,7 +31,7 @@ class EffectCopy(EffectBase):
         data.EffectCurrentMaxChannel1 += 1
         bpy.ops.sequencer.effect_strip_add(type='ADJUSTMENT', frame_start=fstart, frame_end=fend, channel=data.EffectCurrentMaxChannel1)
         adjustlayer = context.scene.sequence_editor.active_strip
-        adjustlayer.use_translation = True
+        # adjustlayer.use_translation = True
         adjustlayer.name = cls.genRegularStripName(effect.EffectId, "adjust")
 
         effect.EffectStrips.add().value = translayer.name
@@ -43,6 +46,7 @@ class EffectCopy(EffectBase):
 
         effect.EffectFloatProperties.add().initForEffect(cls.getName(), 0, 1) #scale x
         effect.EffectFloatProperties.add().initForEffect(cls.getName(), 1, 1) #scale y
+        effect.EffectBoolProperties.add().initForEffect(cls.getName(), 0, False)
 
         cls.leaveFirstLayer(data)
         return
@@ -55,9 +59,7 @@ class EffectCopy(EffectBase):
         layout.prop(tranf, "blend_type", text="Blend")
 
         layout.label(text="Scale:")
-        row = layout.row(align=True)
-        row.prop(effect.EffectFloatProperties[0], "value", text="X")
-        row.prop(effect.EffectFloatProperties[1], "value", text="Y")
+        xylock.draw(layout, effect.EffectFloatProperties[0], "value", effect.EffectFloatProperties[1], "value", effect.EffectBoolProperties[0], "value")
 
         layout.label(text="Position:")
         row = layout.row(align=True)
@@ -81,12 +83,15 @@ class EffectCopy(EffectBase):
 
     @classmethod
     def update(cls, type, identify, context, data, effect, firstlayer):
-        if (type == "ENUM" and identify == 0) or type == 'FLOAT':  # tranfenum or scale changed
+        if (type == "ENUM" and identify == 0) or type == 'FLOAT' or type == 'BOOL':  # tranfenum or scale changed
             resizeEnum = effect.EffectEnumProperties[0].value
             renderX, renderY = context.scene.render.resolution_x, context.scene.render.resolution_y
             movieX, movieY = data.ResolutionWidth, data.ResolutionHeight
             transf = firstlayer.sequences.get(cls.genRegularStripName(effect.EffectId, "transf"))
             user_scalex, user_scaley = effect.EffectFloatProperties[0].value, effect.EffectFloatProperties[1].value
+            if effect.EffectBoolProperties[0].value:
+                user_scaley = user_scalex
+
             if resizeEnum == "Stretch":
                 transf.scale_start_x = 1 * user_scalex
                 transf.scale_start_y = 1 * user_scaley

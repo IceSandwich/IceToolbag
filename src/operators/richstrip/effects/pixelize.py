@@ -1,11 +1,16 @@
 import bpy
 from .base import EffectBase
+from .widgets import xylock
 
 class EffectPixelize(EffectBase):
     """
         EffectFloatProperties:
-            [0]: Strong
-            [1]: Fix Scale
+            [0]: Strong x
+            [1]: Strong y
+            [2]: Fix Scale x
+            [3]: Fix Scale y
+        EffectBoolProperties:
+            [0]: Fix Scale union?
     """
     @classmethod
     def getName(cls):
@@ -22,8 +27,9 @@ class EffectPixelize(EffectBase):
         bpy.ops.sequencer.effect_strip_add(type='TRANSFORM', frame_start=fstart, frame_end=fend, channel=data.EffectCurrentMaxChannel1)
         transsmlayer = context.scene.sequence_editor.active_strip
         transsmlayer.blend_type = 'ALPHA_UNDER'
-        transsmlayer.scale_start_x = 1 / 100
-        transsmlayer.scale_start_y = (data.ResolutionWidth / data.ResolutionHeight) * transsmlayer.scale_start_x
+        transsmlayer.use_uniform_scale = True
+        transsmlayer.scale_start_x = transsmlayer.scale_start_y = 1 / 100
+        # transsmlayer.scale_start_y = (data.ResolutionWidth / data.ResolutionHeight) * transsmlayer.scale_start_x
         transsmlayer.interpolation = 'NONE'
         transsmlayer.name = cls.genRegularStripName(effect.EffectId, "sm")
 
@@ -32,24 +38,28 @@ class EffectPixelize(EffectBase):
         bpy.ops.sequencer.effect_strip_add(type='TRANSFORM', frame_start=fstart, frame_end=fend, channel=data.EffectCurrentMaxChannel1)
         translglayer = context.scene.sequence_editor.active_strip
         translglayer.blend_type = 'REPLACE'
-        translglayer.use_uniform_scale = True
-        translglayer.scale_start_x = 100
-        translglayer.scale_start_y = 100
+        translglayer.use_uniform_scale = False
+        translglayer.scale_start_x = 1 / transsmlayer.scale_start_x
+        translglayer.scale_start_y = 1 / transsmlayer.scale_start_y
         translglayer.interpolation = 'NONE'
         translglayer.name = cls.genRegularStripName(effect.EffectId, "lg")
 
         data.EffectCurrentMaxChannel1 += 1
         bpy.ops.sequencer.effect_strip_add(type='ADJUSTMENT', frame_start=fstart, frame_end=fend, channel=data.EffectCurrentMaxChannel1)
         adjustlayer = context.scene.sequence_editor.active_strip
-        adjustlayer.use_translation = True
+        # adjustlayer.use_translation = True
         adjustlayer.name = cls.genRegularStripName(effect.EffectId, "adjust")
 
         effect.EffectStrips.add().value = transsmlayer.name
         effect.EffectStrips.add().value = translglayer.name
         effect.EffectStrips.add().value = adjustlayer.name
 
-        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 0, 100)
-        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 1, 1)
+        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 0, 1 / transsmlayer.scale_start_x)
+        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 1, 1 / transsmlayer.scale_start_y)
+        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 2, 1)
+        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 3, 1)
+
+        effect.EffectBoolProperties.add().initForEffect(cls.getName(), 0, True)
 
         cls.leaveFirstLayer(data)
         return
@@ -59,23 +69,32 @@ class EffectPixelize(EffectBase):
         smtranf = firstlayer.sequences.get(cls.genRegularStripName(effect.EffectId, "sm"))
         lgtranf = firstlayer.sequences.get(cls.genRegularStripName(effect.EffectId, "lg"))
 
-        layout.label(text="Pixelize:")
-        layout.prop(effect.EffectFloatProperties[0], "value", text="Strong")
-        layout.prop(effect.EffectFloatProperties[1], "value", text="Fix Scale")
+        layout.label(text="Pixelize Strong:")
+        # layout.prop(effect.EffectFloatProperties[0], "value", text="Strong")
+        xylock.draw(layout, effect.EffectFloatProperties[0], "value", effect.EffectFloatProperties[1], "value", lgtranf, "use_uniform_scale")
+
+        layout.label(text="Fix Scale:")
+        # layout.prop(effect.EffectFloatProperties[1], "value", text="Fix Scale")
+        xylock.draw(layout, effect.EffectFloatProperties[2], "value", effect.EffectFloatProperties[3], "value", effect.EffectBoolProperties[0], "value")
         return
 
     @classmethod
     def update(cls, type, identify, context, data, effect, firstlayer):
-        if type == 'FLOAT':
+        if type == 'FLOAT' or type == 'BOOL':
             smtranf = firstlayer.sequences.get(cls.genRegularStripName(effect.EffectId, "sm"))
             lgtranf = firstlayer.sequences.get(cls.genRegularStripName(effect.EffectId, "lg"))
+            lgtranf.use_uniform_scale = False
             
-            strong, fix_scale = effect.EffectFloatProperties[0].value, effect.EffectFloatProperties[1].value
+            strong_x, strong_y = effect.EffectFloatProperties[0].value, effect.EffectFloatProperties[1].value
+            fix_scale_x, fix_scale_y = effect.EffectFloatProperties[2].value, effect.EffectFloatProperties[3].value
+            # print("x:", fix_scale_x, "y:", fix_scale_y, "c:", effect.EffectBoolProperties[0].value)
+            if effect.EffectBoolProperties[0].value:
+                fix_scale_y = fix_scale_x
 
-            smtranf.scale_start_x =  1 / strong
-            smtranf.scale_start_y = (data.ResolutionWidth / data.ResolutionHeight) * smtranf.scale_start_x
+            smtranf.scale_start_x = 1 / strong_x
+            smtranf.scale_start_y = 1 / strong_y
 
-            lgtranf.scale_start_x = strong * fix_scale
-            lgtranf.scale_start_y = strong * fix_scale
+            lgtranf.scale_start_x = strong_x * fix_scale_x
+            lgtranf.scale_start_y = strong_y * fix_scale_y
 
         return

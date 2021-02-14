@@ -32,11 +32,21 @@ class ICETB_PT_RichStripEffectCTL(bpy.types.Panel):
 
         adjustlayer = firstlayer.sequences.get(effect.EffectStrips[-1].value)
 
-        layout.label(text="Transform:")
-        row = layout.row(align=True)
-        adjustoffset = adjustlayer.transform
-        row.prop(adjustoffset, "offset_x", text="X")
-        row.prop(adjustoffset, "offset_y", text="Y")
+        trans = layout.box()
+        row = trans.row()
+        row.prop(adjustlayer, "use_translation", text="")
+        row.label(text="Translate")
+        if adjustlayer.use_translation:
+            row = trans.row(align=True)
+            adjustoffset = adjustlayer.transform
+            row.prop(adjustoffset, "offset_x", text="X")
+            row.prop(adjustoffset, "offset_y", text="Y")
+
+        # layout.label(text="Translate:")
+        # row = layout.row(align=True)
+        # adjustoffset = adjustlayer.transform
+        # row.prop(adjustoffset, "offset_x", text="X")
+        # row.prop(adjustoffset, "offset_y", text="Y")
 
         layout.label(text="Mirror:")
         row = layout.row(align=True)

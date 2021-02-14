@@ -13,7 +13,7 @@ class EffectOriginal(EffectBase):
         data.EffectCurrentMaxChannel1 += 1
         bpy.ops.sequencer.effect_strip_add(type='ADJUSTMENT', frame_start=fstart, frame_end=fend, channel=data.EffectCurrentMaxChannel1)
         adjustlayer = context.scene.sequence_editor.active_strip
-        adjustlayer.use_translation = True
+        # adjustlayer.use_translation = True
         adjustlayer.name = cls.genRegularStripName(effect.EffectId, "adjust")
 
         effect.EffectStrips.add().value = adjustlayer.name

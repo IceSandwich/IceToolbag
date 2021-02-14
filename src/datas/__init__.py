@@ -5,6 +5,7 @@ from .string_prop import StringProperty
 from .int_prop import IntProperty
 from .float_prop import FloatProperty
 from .enum_prop import EnumProperty
+from .bool_prop import BoolProperty
 
 from .richstrip import RichStripData
 from .richstrip import RichStripEffect
@@ -14,6 +15,7 @@ ICETB_DATAS_CLASSES = [
     IntProperty,
     FloatProperty,
     EnumProperty,
+    BoolProperty,
 
     RichStripEffect,
     RichStripData,
