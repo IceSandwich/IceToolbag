@@ -11,6 +11,7 @@ class EffectPixelize(EffectBase):
             [3]: Fix Scale y
         EffectBoolProperties:
             [0]: Fix Scale union?
+            [1]: Strong union?
     """
     @classmethod
     def getName(cls):
@@ -31,7 +32,7 @@ class EffectPixelize(EffectBase):
         transsmlayer.scale_start_x = transsmlayer.scale_start_y = 1 / 100
         # transsmlayer.scale_start_y = (data.ResolutionWidth / data.ResolutionHeight) * transsmlayer.scale_start_x
         transsmlayer.interpolation = 'NONE'
-        transsmlayer.name = cls.genRegularStripName(effect.EffectId, "sm")
+        transsmlayer.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "sm")
 
         data.EffectCurrentMaxChannel1 += 1
         transsmlayer.select = True
@@ -42,13 +43,13 @@ class EffectPixelize(EffectBase):
         translglayer.scale_start_x = 1 / transsmlayer.scale_start_x
         translglayer.scale_start_y = 1 / transsmlayer.scale_start_y
         translglayer.interpolation = 'NONE'
-        translglayer.name = cls.genRegularStripName(effect.EffectId, "lg")
+        translglayer.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "lg")
 
         data.EffectCurrentMaxChannel1 += 1
         bpy.ops.sequencer.effect_strip_add(type='ADJUSTMENT', frame_start=fstart, frame_end=fend, channel=data.EffectCurrentMaxChannel1)
         adjustlayer = context.scene.sequence_editor.active_strip
         # adjustlayer.use_translation = True
-        adjustlayer.name = cls.genRegularStripName(effect.EffectId, "adjust")
+        adjustlayer.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "adjust")
 
         effect.EffectStrips.add().value = transsmlayer.name
         effect.EffectStrips.add().value = translglayer.name
@@ -60,18 +61,19 @@ class EffectPixelize(EffectBase):
         effect.EffectFloatProperties.add().initForEffect(cls.getName(), 3, 1)
 
         effect.EffectBoolProperties.add().initForEffect(cls.getName(), 0, True)
+        effect.EffectBoolProperties.add().initForEffect(cls.getName(), 1, True)
 
         cls.leaveFirstLayer(data)
         return
 
     @classmethod
     def draw(cls, context, layout, data, effect, firstlayer):
-        smtranf = firstlayer.sequences.get(cls.genRegularStripName(effect.EffectId, "sm"))
-        lgtranf = firstlayer.sequences.get(cls.genRegularStripName(effect.EffectId, "lg"))
+        smtranf = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "sm"))
+        lgtranf = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "lg"))
 
         layout.label(text="Pixelize Strong:")
         # layout.prop(effect.EffectFloatProperties[0], "value", text="Strong")
-        xylock.draw(layout, effect.EffectFloatProperties[0], "value", effect.EffectFloatProperties[1], "value", lgtranf, "use_uniform_scale")
+        xylock.draw(layout, effect.EffectFloatProperties[0], "value", effect.EffectFloatProperties[1], "value", effect.EffectBoolProperties[1], "value")
 
         layout.label(text="Fix Scale:")
         # layout.prop(effect.EffectFloatProperties[1], "value", text="Fix Scale")
@@ -81,13 +83,15 @@ class EffectPixelize(EffectBase):
     @classmethod
     def update(cls, type, identify, context, data, effect, firstlayer):
         if type == 'FLOAT' or type == 'BOOL':
-            smtranf = firstlayer.sequences.get(cls.genRegularStripName(effect.EffectId, "sm"))
-            lgtranf = firstlayer.sequences.get(cls.genRegularStripName(effect.EffectId, "lg"))
-            lgtranf.use_uniform_scale = False
+            smtranf = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "sm"))
+            lgtranf = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "lg"))
+            # lgtranf.use_uniform_scale = False
             
             strong_x, strong_y = effect.EffectFloatProperties[0].value, effect.EffectFloatProperties[1].value
             fix_scale_x, fix_scale_y = effect.EffectFloatProperties[2].value, effect.EffectFloatProperties[3].value
             # print("x:", fix_scale_x, "y:", fix_scale_y, "c:", effect.EffectBoolProperties[0].value)
+            if effect.EffectBoolProperties[1].value:
+                strong_y = strong_x
             if effect.EffectBoolProperties[0].value:
                 fix_scale_y = fix_scale_x
 

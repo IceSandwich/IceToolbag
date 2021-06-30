@@ -18,7 +18,7 @@ bl_info = {
     "name" : "IceToolbag",
     "author" : "IceSandwich",
     "description" : "",
-    "blender" : (2, 91, 0),
+    "blender" : (2, 93, 0),
     "version" : (0, 0, 1),
     "location" : "",
     "warning" : "",

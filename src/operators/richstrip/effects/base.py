@@ -17,6 +17,7 @@ class EffectBase():
 
     @classmethod
     def add(cls, context, richstrip, data, effect):
+        print(cls.getName() + " `add` function is not implemented yet.")
         return
 
     @classmethod
@@ -24,31 +25,34 @@ class EffectBase():
         richstrip = context.selected_sequences[0]
         if type(richstrip) != bpy.types.MetaSequence: # some bug i don't know how to occur, just check if meta to solve right now.
             return
-        firstlayer = richstrip.sequences.get("FirstLayerRichStrip")
         data = richstrip.IceTB_richstrip_data
+        firstlayer = richstrip.sequences.get("rs%d-strip"%data.RichStripID)
         effect = data.getSelectedEffect()
         cls.update(_type, identify, context, data, effect, firstlayer)
         bpy.ops.sequencer.refresh_all()
 
     @classmethod
     def update(cls, type, identify, context, data, effect, firstlayer):
+        print(cls.getName() + " `update` function is not implemented yet.")
         return
 
     @classmethod
     def _draw(cls, context, layout):
         richstrip = context.selected_sequences[0]
-        firstlayer = richstrip.sequences.get("FirstLayerRichStrip")
         data = richstrip.IceTB_richstrip_data
+        firstlayer = richstrip.sequences.get("rs%d-strip"%data.RichStripID)
         effect = data.getSelectedEffect()
         cls.draw(context, layout, data, effect, firstlayer)
 
     @classmethod
     def draw(cls, context, layout, data, effect, firstlayer):
+        print(cls.getName() + " `draw` function is not implemented yet.")
         return
 
     @classmethod
     def enterFistLayer(cls, richstrip):
-        firstlayerrs = richstrip.sequences.get("FirstLayerRichStrip")
+        data = richstrip.IceTB_richstrip_data
+        firstlayerrs = richstrip.sequences.get("rs%d-strip"%data.RichStripID)
         # audiolayer = firstlayerrs.sequences.get("GlobalBaseAudioStrip")
         # assert(firstlayerrs is not None)
         richstrip.select = True
@@ -72,5 +76,5 @@ class EffectBase():
             data.EffectsCurrent = len(data.Effects) - 1
 
     @classmethod
-    def genRegularStripName(cls, effectid, descrip):
-        return cls.getName() + "_" + str(effectid) + "_" + descrip
+    def genRegularStripName(cls, rsid, effectid, descrip):
+        return "rs%d-%s%d/%s"%(rsid, cls.getName(), effectid, descrip)

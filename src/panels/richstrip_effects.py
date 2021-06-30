@@ -25,7 +25,7 @@ class ICETB_PT_RichStripEffects(bpy.types.Panel):
 
         obj = context.selected_sequences[0]
         data = obj.IceTB_richstrip_data
-        layout.label(text= "Name: " + obj.name)
+        # layout.label(text= "Name: " + obj.name)
 
         row = layout.row()
 

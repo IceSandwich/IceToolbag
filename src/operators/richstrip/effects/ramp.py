@@ -40,7 +40,7 @@ class EffectRamp(EffectBase):
         transsmlayer.scale_start_x = 1 / 100
         transsmlayer.scale_start_y = (data.ResolutionWidth / data.ResolutionHeight) * transsmlayer.scale_start_x
         transsmlayer.interpolation = 'NONE'
-        transsmlayer.name = cls.genRegularStripName(effect.EffectId, "sm")
+        transsmlayer.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "sm")
 
         data.EffectCurrentMaxChannel1 += 1
         transsmlayer.select = True
@@ -51,13 +51,13 @@ class EffectRamp(EffectBase):
         translglayer.scale_start_x = 100
         translglayer.scale_start_y = 100
         translglayer.interpolation = 'NONE'
-        translglayer.name = cls.genRegularStripName(effect.EffectId, "lg")
+        translglayer.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "lg")
 
         data.EffectCurrentMaxChannel1 += 1
         bpy.ops.sequencer.effect_strip_add(type='ADJUSTMENT', frame_start=fstart, frame_end=fend, channel=data.EffectCurrentMaxChannel1)
         adjustlayer = context.scene.sequence_editor.active_strip
         adjustlayer.use_translation = True
-        adjustlayer.name = cls.genRegularStripName(effect.EffectId, "adjust")
+        adjustlayer.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "adjust")
 
         effect.EffectStrips.add().value = transsmlayer.name
         effect.EffectStrips.add().value = translglayer.name
@@ -71,8 +71,8 @@ class EffectRamp(EffectBase):
 
     @classmethod
     def draw(cls, context, layout, data, effect, firstlayer):
-        smtranf = firstlayer.sequences.get(cls.genRegularStripName(effect.EffectId, "sm"))
-        lgtranf = firstlayer.sequences.get(cls.genRegularStripName(effect.EffectId, "lg"))
+        smtranf = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "sm"))
+        lgtranf = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "lg"))
 
         layout.label(text="Pixelize:")
         layout.prop(effect.EffectFloatProperties[0], "value", text="Strong")
@@ -82,8 +82,8 @@ class EffectRamp(EffectBase):
     @classmethod
     def update(cls, type, identify, context, data, effect, firstlayer):
         if type == 'FLOAT':
-            smtranf = firstlayer.sequences.get(cls.genRegularStripName(effect.EffectId, "sm"))
-            lgtranf = firstlayer.sequences.get(cls.genRegularStripName(effect.EffectId, "lg"))
+            smtranf = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "sm"))
+            lgtranf = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "lg"))
             
             strong, fix_scale = effect.EffectFloatProperties[0].value, effect.EffectFloatProperties[1].value
 

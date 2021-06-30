@@ -36,7 +36,7 @@ class EffectFastBlur(EffectBase):
         #     transsmlayer.scale_start_y = 1 / 200
         #     transsmlayer.scale_start_x = (data.ResolutionHeight / data.ResolutionWidth) * transsmlayer.scale_start_y
         transsmlayer.interpolation = 'NONE'
-        transsmlayer.name = cls.genRegularStripName(effect.EffectId, "sm")
+        transsmlayer.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "sm")
 
         data.EffectCurrentMaxChannel1 += 1
         transsmlayer.select = True
@@ -46,7 +46,7 @@ class EffectFastBlur(EffectBase):
         transmdlayer.use_uniform_scale = True
         transmdlayer.scale_start_x = 1.2
         transmdlayer.interpolation = 'BILINEAR'
-        transmdlayer.name = cls.genRegularStripName(effect.EffectId, "md")
+        transmdlayer.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "md")
 
         data.EffectCurrentMaxChannel1 += 1
         transmdlayer.select = True
@@ -56,13 +56,13 @@ class EffectFastBlur(EffectBase):
         translglayer.use_uniform_scale = True
         translglayer.scale_start_x = 1 / transsmlayer.scale_start_y * 1.3
         translglayer.interpolation = 'BICUBIC'
-        translglayer.name = cls.genRegularStripName(effect.EffectId, "lg")
+        translglayer.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "lg")
 
         data.EffectCurrentMaxChannel1 += 1
         bpy.ops.sequencer.effect_strip_add(type='ADJUSTMENT', frame_start=fstart, frame_end=fend, channel=data.EffectCurrentMaxChannel1)
         adjustlayer = context.scene.sequence_editor.active_strip
         # adjustlayer.use_translation = True
-        adjustlayer.name = cls.genRegularStripName(effect.EffectId, "adjust")
+        adjustlayer.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "adjust")
 
         effect.EffectStrips.add().value = transsmlayer.name
         effect.EffectStrips.add().value = transmdlayer.name
@@ -81,9 +81,9 @@ class EffectFastBlur(EffectBase):
 
     @classmethod
     def draw(cls, context, layout, data, effect, firstlayer):
-        smtranf = firstlayer.sequences.get(cls.genRegularStripName(effect.EffectId, "sm"))
-        mdtranf = firstlayer.sequences.get(cls.genRegularStripName(effect.EffectId, "md"))
-        lgtranf = firstlayer.sequences.get(cls.genRegularStripName(effect.EffectId, "lg"))
+        smtranf = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "sm"))
+        mdtranf = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "md"))
+        lgtranf = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "lg"))
 
         layout.label(text="Blur Strong:")
         xylock.draw(layout, effect.EffectFloatProperties[0], "value", effect.EffectFloatProperties[1], "value", smtranf, "use_uniform_scale")
@@ -105,8 +105,8 @@ class EffectFastBlur(EffectBase):
     def update(cls, type, identify, context, data, effect, firstlayer):
         
         if type == 'FLOAT' or type == 'BOOL':
-            smtranf = firstlayer.sequences.get(cls.genRegularStripName(effect.EffectId, "sm"))
-            lgtranf = firstlayer.sequences.get(cls.genRegularStripName(effect.EffectId, "lg"))
+            smtranf = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "sm"))
+            lgtranf = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "lg"))
 
             scale_factor_x, scale_factor_y = effect.EffectFloatProperties[0].value, effect.EffectFloatProperties[1].value
             scale_fix_x, scale_fix_y = effect.EffectFloatProperties[2].value, effect.EffectFloatProperties[3].value

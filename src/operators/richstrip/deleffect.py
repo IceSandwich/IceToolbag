@@ -16,6 +16,10 @@ class ICETB_OT_RichStrip_Delete(bpy.types.Operator):
         effect = data.getSelectedEffect()
         effectName = effect.EffectType
 
+        if effectName == "Original":
+            self.report({'ERROR'}, "Can't delete original effect.")
+            return {'CANCELLED'}
+
         if effectName in ICETB_EFFECTS_NAMES:
             cls = ICETB_EFFECTS_DICTS[effectName]
             cureffectIdx = data.EffectsCurrent

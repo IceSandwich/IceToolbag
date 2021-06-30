@@ -26,21 +26,29 @@ class ICETB_PT_RichStripEffectCTL(bpy.types.Panel):
         layout = self.layout
 
         richstrip = context.selected_sequences[0]
-        firstlayer = richstrip.sequences.get("FirstLayerRichStrip")
         data = richstrip.IceTB_richstrip_data
+        firstlayer = richstrip.sequences.get("rs%d-strip"%data.RichStripID)
         effect = data.getSelectedEffect()
+
+        if effect.EffectType == "Original":
+            layout.label(text="This effect doesn't support after effect.")
+            return
 
         adjustlayer = firstlayer.sequences.get(effect.EffectStrips[-1].value)
 
         trans = layout.box()
         row = trans.row()
-        row.prop(adjustlayer, "use_translation", text="")
+        #row.prop(adjustlayer, "use_translation", text="") #for 2.8
         row.label(text="Translate")
-        if adjustlayer.use_translation:
-            row = trans.row(align=True)
-            adjustoffset = adjustlayer.transform
-            row.prop(adjustoffset, "offset_x", text="X")
-            row.prop(adjustoffset, "offset_y", text="Y")
+        # if adjustlayer.use_translation:
+        #     row = trans.row(align=True)
+        #     adjustoffset = adjustlayer.transform
+        #     row.prop(adjustoffset, "offset_x", text="X")
+        #     row.prop(adjustoffset, "offset_y", text="Y")
+        row = trans.row(align=True)
+        adjustoffset = adjustlayer.transform
+        row.prop(adjustoffset, "offset_x", text="X")
+        row.prop(adjustoffset, "offset_y", text="Y")
 
         # layout.label(text="Translate:")
         # row = layout.row(align=True)
@@ -48,11 +56,13 @@ class ICETB_PT_RichStripEffectCTL(bpy.types.Panel):
         # row.prop(adjustoffset, "offset_x", text="X")
         # row.prop(adjustoffset, "offset_y", text="Y")
 
-        layout.label(text="Mirror:")
-        row = layout.row(align=True)
+        box = layout.box()
+        box.row().label(text="Mirror")
+        row = box.row(align=True)
         row.prop(adjustlayer, "use_flip_x", toggle=1)
         row.prop(adjustlayer, "use_flip_y", toggle=1)
 
-        layout.label(text="Color:")
-        layout.prop(adjustlayer, "color_saturation")
-        layout.prop(adjustlayer, "color_multiply")
+        box = layout.box()
+        box.row().label(text="Color")
+        box.prop(adjustlayer, "color_saturation")
+        box.prop(adjustlayer, "color_multiply")
