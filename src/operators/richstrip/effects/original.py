@@ -26,13 +26,12 @@ class EffectOriginal(EffectBase):
         strips, fstart, fend = cls.enterFistLayer(richstrip)
 
         data.EffectCurrentMaxChannel1 += 1
-        # bpy.ops.sequencer.effect_strip_add(type='ADJUSTMENT', frame_start=fstart, frame_end=fend, channel=data.EffectCurrentMaxChannel1)
         richstrip.sequences.get("rs%d-strip"%data.RichStripID).sequences.get("rs%d-fixfps"%data.RichStripID).select = True
         bpy.ops.sequencer.effect_strip_add(type='TRANSFORM', frame_start=fstart, frame_end=fend, channel=data.EffectCurrentMaxChannel1)
         adjustlayer = context.scene.sequence_editor.active_strip
-        # adjustlayer.use_translation = True
         adjustlayer.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "adjust")
 
+        # effect.EffectStrips.add().value = "rs%d-fixfps"%data.RichStripID
         effect.EffectStrips.add().value = adjustlayer.name
 
         tranfenum = effect.EffectEnumProperties.add()
@@ -64,8 +63,6 @@ class EffectOriginal(EffectBase):
         box = layout.box()
         box.row().label(text="Translate")
         row = box.row(align=True)
-        # row.prop(adjustlayer.transform, "offset_x", text="X")
-        # row.prop(adjustlayer.transform, "offset_y", text="Y")
         row.prop(effect.EffectIntProperties[0], "value", text="X")
         row.prop(effect.EffectIntProperties[1], "value", text="Y")
 
@@ -77,12 +74,11 @@ class EffectOriginal(EffectBase):
         box = layout.box()
         box.label(text="Rotation")
         box.prop(adjustlayer.transform, "rotation", text="Degree")
+        # box.prop(movielayer.transform, "rotation", text="Degree")
 
         box = layout.box()
         box.label(text="Mirror")
         row = box.row(align=True)
-        # row.prop(adjustlayer, "use_flip_x", toggle=1)
-        # row.prop(adjustlayer, "use_flip_y", toggle=1)
         row.prop(effect.EffectBoolProperties[1], "value", toggle=1, text="Flip X")
         row.prop(effect.EffectBoolProperties[2], "value", toggle=1, text="Flip Y")
 
@@ -111,6 +107,7 @@ class EffectOriginal(EffectBase):
     @classmethod
     def update(cls, type, identify, context, data, effect, firstlayer):
         adjustlayer = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "adjust"))
+        # adjustlayer = firstlayer.sequences.get("rs%d-movie"%data.RichStripID)
 
         if (type == 'BOOL' and (identify == 1 or identify == 2)) or (type == 'INT' and (identify == 0 or identify == 1)): #flip x/y
             adjustlayer.use_flip_x = effect.EffectBoolProperties[1].value
@@ -129,6 +126,9 @@ class EffectOriginal(EffectBase):
             resizeEnum = effect.EffectEnumProperties[0].value
             if effect.EffectBoolProperties[0].value:
                 user_scaley = user_scalex
+
+            # FIXME: when movie resolution is bigger than render resolution
+            # the following algorithmn can't perform very well due to the clipping of blender
 
             fullx_y, fully_x = movieY * renderX / movieX, movieX * renderY / movieY
             if resizeEnum == "Scale to Fit":

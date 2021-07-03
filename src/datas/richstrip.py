@@ -34,6 +34,7 @@ class RichStripEffect(bpy.types.PropertyGroup):
     EffectColorCurrent: bpy.props.IntProperty(name="Current Color Effect Index", default=0)
 
     EffectAfterEffect: bpy.props.CollectionProperty(type=RichStripColorEffect)
+    # EffectAfterEffect_ScaleBoolProperty: bpy.props.BoolProperty(name="For AE Scale look", default=False) # TODO
     EffectAECurrent: bpy.props.IntProperty(name="Current After Effect Index", default=0)
 
     # the following are what you need to parse in operator func.
@@ -123,7 +124,10 @@ class RichStripData(bpy.types.PropertyGroup):
         effect = self.Effects.add()
         effect.EffectType = effectType
         effect.EffectIndex = len(self.Effects)
-        effect.EffectInputId = self.EffectsCurrent
+        if effectType == "Copy":
+            effect.EffectInputId = self.EffectsCurrent
+        else:
+            effect.EffectInputId = -1
         effect.EffectId = self.EfeectsCounter
         effect.EffectName = effectType + "_" + str(effect.EffectId)
         self.EfeectsCounter += 1

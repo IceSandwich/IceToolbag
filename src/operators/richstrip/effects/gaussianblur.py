@@ -15,8 +15,8 @@ class EffectGaussianBlur(EffectBase):
 
     @classmethod
     def add(cls, context, richstrip, data, effect):
-        # effectlast = data.Effects[-2].EffectStrips[-1].value
-        effectlast = data.getSelectedEffect().EffectStrips[-1].value
+        effectlast = data.Effects[-2].EffectStrips[-1].value
+        # effectlast = data.getSelectedEffect().EffectStrips[-1].value
         strips, fstart, fend = cls.enterFistLayer(richstrip)
 
         data.EffectCurrentMaxChannel1 += 1

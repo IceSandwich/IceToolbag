@@ -1,4 +1,4 @@
-import bpy
+import bpy, os
 from .base import EffectBase
 from .widgets import xylock
 
@@ -24,25 +24,41 @@ class EffectCopy(EffectBase):
     def add(cls, context, richstrip, data, effect):
         isCopyFromOriginal = (data.getSelectedEffect().EffectType == "Original")
         if isCopyFromOriginal:
-            effectnamecopyfrom = "rs%d-fixfps"%data.RichStripID
+            effectnamecopyfrom = "rs%d-movie"%data.RichStripID
         else:
             effectnamecopyfrom = data.getSelectedEffect().EffectStrips[-1].value
         strips, fstart, fend = cls.enterFistLayer(richstrip)
 
+        # if isCopyFromOriginal:
+        #     # data.EffectCurrentMaxChannel1 += 1
+        #     MovieSeq = strips.get("rs%d-movie"%data.RichStripID)
+        #     bpy.ops.sequencer.movie_strip_add(filepath=MovieSeq.filepath, directory=os.path.dirname(MovieSeq.filepath), frame_start=MovieSeq.frame_start, channel=data.EffectCurrentMaxChannel1, fit_method='ORIGINAL', sound=False, use_framerate=False)
+        #     movielayer = context.scene.sequence_editor.active_strip
+        #     movielayer.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "transf")
+
+        #     data.EffectCurrentMaxChannel1 += 1
+        #     bpy.ops.sequencer.effect_strip_add(type='SPEED', channel=data.EffectCurrentMaxChannel1)
+        #     speed_strip = context.scene.sequence_editor.active_strip
+        #     speed_strip.multiply_speed = strips.get("rs%d-fixfps"%data.RichStripID).multiply_speed
+        #     speed_strip.use_frame_interpolate = True
+        #     speed_strip.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "speed")
+
+        #     effect.EffectStrips.add().value = movielayer.name
+        #     effect.EffectStrips.add().value = speed_strip.name
+        # else:
         data.EffectCurrentMaxChannel1 += 1
         strips.get(effectnamecopyfrom).select = True
         bpy.ops.sequencer.effect_strip_add(type='TRANSFORM', frame_start=fstart, frame_end=fend, channel=data.EffectCurrentMaxChannel1)
         translayer = context.scene.sequence_editor.active_strip
         translayer.blend_type = 'ALPHA_OVER'
         translayer.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "transf")
+        effect.EffectStrips.add().value = translayer.name
 
         data.EffectCurrentMaxChannel1 += 1
         bpy.ops.sequencer.effect_strip_add(type='ADJUSTMENT', frame_start=fstart, frame_end=fend, channel=data.EffectCurrentMaxChannel1)
         adjustlayer = context.scene.sequence_editor.active_strip
-        # adjustlayer.use_translation = True
         adjustlayer.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "adjust")
 
-        effect.EffectStrips.add().value = translayer.name
         effect.EffectStrips.add().value = adjustlayer.name
 
         if isCopyFromOriginal:
@@ -86,7 +102,10 @@ class EffectCopy(EffectBase):
 
         box = layout.box()
         box.label(text="Rotation")
-        box.prop(tranf, "rotation_start", text="Degree")
+        if tranf.type == "TRANSFORM":
+            box.prop(tranf, "rotation_start", text="Degree")
+        else:
+            box.prop(tranf.transform, "rotation", text="Degree")
 
         box = layout.box()
         box.label(text="Mirror")
@@ -111,8 +130,12 @@ class EffectCopy(EffectBase):
         if (type == 'BOOL' and (identify == 1 or identify == 2)) or (type == 'FLOAT' and (identify == 2 or identify == 3)): #flip x/y
             transf.use_flip_x = effect.EffectBoolProperties[1].value
             transf.use_flip_y = effect.EffectBoolProperties[2].value
-            transf.translate_start_x = effect.EffectFloatProperties[2].value * (-1 if effect.EffectBoolProperties[1].value else 1)
-            transf.translate_start_y = effect.EffectFloatProperties[3].value * (-1 if effect.EffectBoolProperties[2].value else 1)
+            if transf.type == "TRANSFORM":
+                transf.translate_start_x = effect.EffectFloatProperties[2].value * (-1 if effect.EffectBoolProperties[1].value else 1)
+                transf.translate_start_y = effect.EffectFloatProperties[3].value * (-1 if effect.EffectBoolProperties[2].value else 1)
+            else:
+                transf.transform.offset_x = effect.EffectFloatProperties[2].value * (-1 if effect.EffectBoolProperties[1].value else 1)
+                transf.transform.offset_y = effect.EffectFloatProperties[3].value * (-1 if effect.EffectBoolProperties[2].value else 1)
             return
         if (type == "ENUM" and identify == 0) or type == 'FLOAT' or type == 'BOOL':  # tranfenum or scale changed
             renderX, renderY = context.scene.render.resolution_x, context.scene.render.resolution_y
@@ -120,10 +143,17 @@ class EffectCopy(EffectBase):
             user_scalex, user_scaley = effect.EffectFloatProperties[0].value, effect.EffectFloatProperties[1].value
             if effect.EffectBoolProperties[0].value:
                 user_scaley = user_scalex
+            # MovieSeq = firstlayer.sequences.get("rs%d-movie"%data.RichStripID)
+            # user_scalex = user_scalex / MovieSeq.scale_x # scale to (original size) * (user scale)
+            # user_scaley = user_scaley / MovieSeq.scale_y
 
             if len(effect.EffectEnumProperties) == 0:
-                transf.scale_start_x = user_scalex
-                transf.scale_start_y = user_scaley
+                if transf.type == "TRANSFORM":
+                    transf.scale_start_x = user_scalex
+                    transf.scale_start_y = user_scaley
+                else:
+                    transf.transform.scale_x = user_scalex
+                    transf.transform.scale_y = user_scaley
             else:
                 resizeEnum = effect.EffectEnumProperties[0].value
                 fullx_y, fully_x = movieY * renderX / movieX, movieX * renderY / movieY
@@ -142,7 +172,11 @@ class EffectCopy(EffectBase):
                 elif resizeEnum == "Original":
                     final_scalex = final_scaley = 1
 
-                transf.scale_start_x = final_scalex * user_scalex
-                transf.scale_start_y = final_scaley * user_scaley
+                if transf.type == "TRANSFORM":
+                    transf.scale_start_x = final_scalex * user_scalex
+                    transf.scale_start_y = final_scaley * user_scaley
+                else:
+                    transf.transform.scale_x = final_scalex * user_scalex
+                    transf.transform.scale_y = final_scaley * user_scaley
 
         return

@@ -141,5 +141,6 @@ class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
         context.scene.render.fps_base = render_fps_base
         
         meta_strip.frame_final_end = meta_frameend
+        meta_strip.frame_final_start = MovieSeq.frame_final_start
 
         return {"FINISHED"}

@@ -1,6 +1,7 @@
 import bpy
 from ..datas.richstrip import RichStripData
 from ..operators.richstrip.effects import ICETB_EFFECTS_DICTS
+from ..operators.richstrip.effects.widgets import xylock
 
 class ICETB_PT_RichStripEffectCTL(bpy.types.Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
@@ -46,15 +47,28 @@ class ICETB_PT_RichStripEffectCTL(bpy.types.Panel):
         #     row.prop(adjustoffset, "offset_x", text="X")
         #     row.prop(adjustoffset, "offset_y", text="Y")
         row = trans.row(align=True)
-        adjustoffset = adjustlayer.transform
-        row.prop(adjustoffset, "offset_x", text="X")
-        row.prop(adjustoffset, "offset_y", text="Y")
+        adjtransf = adjustlayer.transform
+        row.prop(adjtransf, "offset_x", text="X")
+        row.prop(adjtransf, "offset_y", text="Y")
 
         # layout.label(text="Translate:")
         # row = layout.row(align=True)
         # adjustoffset = adjustlayer.transform
         # row.prop(adjustoffset, "offset_x", text="X")
         # row.prop(adjustoffset, "offset_y", text="Y")
+
+        box = layout.box()
+        box.label(text="Scale")
+        # xylock.draw(box, adjtransf, "scale_x", adjtransf, "scale_y", effect, "EffectAfterEffect_ScaleBoolProperty")
+        row = box.row(align=True)
+        row.prop(adjtransf, "scale_x", text="X")
+        row.prop(adjtransf, "scale_y", text="Y")
+
+        box = layout.box()
+        box.label(text="Rotation")
+        # xylock.draw(box, adjtransf, "scale_x", adjtransf, "scale_y", effect, "EffectAfterEffect_ScaleBoolProperty")
+        row = box.row(align=True)
+        row.prop(adjtransf, "rotation", text="Degree")
 
         box = layout.box()
         box.row().label(text="Mirror")

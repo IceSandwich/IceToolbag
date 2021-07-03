@@ -4,6 +4,8 @@ from .fastblur import EffectFastBlur
 from .pixelize import EffectPixelize
 from .glow import EffectGlow
 from .gaussianblur import EffectGaussianBlur
+from .ramp import EffectRamp
+from .matte import EffectMatte
 
 ICETB_EFFECTS_CLASSES = [
     EffectOriginal,
@@ -11,7 +13,9 @@ ICETB_EFFECTS_CLASSES = [
     EffectFastBlur,
     EffectPixelize,
     EffectGlow,
-    EffectGaussianBlur
+    EffectGaussianBlur,
+    EffectRamp,
+    EffectMatte
 ]
 
 ICETB_EFFECTS_NAMES = [ x.getName() for x in ICETB_EFFECTS_CLASSES ]
