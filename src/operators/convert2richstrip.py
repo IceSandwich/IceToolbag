@@ -1,5 +1,6 @@
 import bpy
 import time
+import uuid
 from ..datas.richstrip import RichStripData
 
 class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
@@ -11,136 +12,123 @@ class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
     def poll(cls, context):
         return True
 
-    def execute(self, context):
-        if len(context.selected_sequences) > 2 or len(context.selected_sequences) == 0:
-            self.report({'ERROR'}, "Please select one or two strips.")
-            return {"CANCELLED"}
-        
-        MovieSeq = None
-        AudioSeq = None
+    def seperate_strips(self, context):
+        # seperate selected strips into `self.movie`, `self.AudioSeq`
+        # auctually `movie` can be another meta strip which has been defined as rich strip
+        self.movie = None
+        self.audio = None
 
         for seq in context.selected_sequences:
-            if seq.type == 'MOVIE':
-                if MovieSeq is not None:
-                    self.report({'ERROR'}, "You should select a movie strip and a audio strip.")
-                    return {"CANCELLED"}
+            if seq.type == 'MOVIE' or seq.type == 'META':
+                if self.movie is not None:
+                    self.report({'ERROR'}, "More than one either movie strip nor rich strip were detected.")
+                    return False
                 else:
-                    MovieSeq = seq
+                    if seq.type == 'META':
+                        if not RichStripData.checkProperty(context, seq):
+                            self.report({'ERROR'}, "Selected meta strip isn't a valid rich strip.")
+                            return False
+                    self.movie = seq
             elif seq.type == 'SOUND':
-                if AudioSeq is not None:
-                    self.report({'ERROR'}, "You should select a movie strip and a audio strip.")
-                    return {"CANCELLED"}
+                if self.audio is not None:
+                    self.report({'ERROR'}, "More than one audio strip were detected.")
+                    return False
                 else:
-                    AudioSeq = seq
+                    self.audio = seq
             else:
                 self.report({'ERROR'}, "Unknow strip type: %s" % seq.type)
-                return {"CANCELLED"}
-        if MovieSeq is None:
-            self.report({'ERROR'}, "Must contain one movie strip.")
-            return {"CANCELLED"}
+                return False
+        if self.movie is None:
+            self.report({'ERROR'}, "Must contain one either movie strip nor rich strip.")
+            return False
 
-        # read information
+        return True
 
-        meta_frameend = MovieSeq.frame_final_end
-        if AudioSeq is not None:
-            meta_frameend = AudioSeq.frame_final_end
-        MovieSeq.use_proxy = False # we must read fps when not using proxy, otherwise we got 0
+    def read_info(self, context):
+        self.frame_end = self.movie.frame_final_end
+        if self.audio is not None:
+            self.frame_end = self.audio.frame_final_end
+        self.movie_name = self.movie.name
+
+        self.movie.use_proxy = False # we must read fps when not using proxy, otherwise we got 0
         bpy.ops.sequencer.refresh_all() # blender 2.9 will automatically build proxy, so we need refresh all
-        moviefps = MovieSeq.fps
-        MovieSeq.use_proxy = True
-        # MovieSeq.frame_final_end = meta_frameend
+        self.movie_fps = self.movie.fps
+        self.movie.use_proxy = True
 
         # read scene fps, because the fps of scene will change automatically. i don't know why.
-        render_fps, render_fps_base = context.scene.render.fps, context.scene.render.fps_base
+        self.scene_fps, self.scene_fps_base = context.scene.render.fps, context.scene.render.fps_base
 
-        # assemsemby sequences
+    def recover_info(self, context):
+        # i don't know why the fps of blender will change automatically. we need to recover them.
+        context.scene.render.fps = self.scene_fps
+        context.scene.render.fps_base = self.scene_fps_base
 
-        rsid = RichStripData.genRichStripId(context)
-
+    def build_richstrip(self, context):
         bpy.ops.sequencer.meta_make()
         meta_strip = context.scene.sequence_editor.active_strip
         meta_strip.blend_type = "ALPHA_OVER"
         bpy.ops.sequencer.meta_toggle() # enter meta_strip
 
-        MovieSeq.channel = 2
-        moviename = MovieSeq.name
-        MovieSeq.name = "rs%d-movie"%(rsid)
-        MovieSeq.transform.scale_x = MovieSeq.transform.scale_y = 1
-        MovieSeq.transform.rotation = 0
-        MovieSeq.transform.offset_x = MovieSeq.transform.offset_y = 0
-        meta_strip.name = moviename
-        if AudioSeq is not None:
-            AudioSeq.channel = 1
-            AudioSeq.select = True
-            AudioSeq.sound.use_memory_cache = True # A/V sync
-            AudioSeq.name = "rs%d-audio"%(rsid)
-
-        # make submeta_strip, in submeta_strip, audio in channel 1, movie in channel 2, speed control in channel 3, adjustment in channel 4
-        MovieSeq.select = True
-        # AudioSeq.select = True # we selected audioseq just now, we don't need to do it again.
-        bpy.ops.sequencer.meta_make()
-        submeta_strip = context.scene.sequence_editor.active_strip
-        submeta_strip.name = "rs%d-submeta"%(rsid)
-        # submeta_strip.blend_type = "ALPHA_OVER"
-        bpy.ops.sequencer.meta_toggle() # enter submeta
+        self.movie.channel = 2
+        self.movie.name = "rs%d-movie"%(self.rsid)
+        self.movie.transform.scale_x = self.movie.transform.scale_y = 1
+        self.movie.transform.rotation = 0
+        self.movie.transform.offset_x = self.movie.transform.offset_y = 0
+        # self.movie['fps'] = self.movie_fps
+        self.movie['width'] = self.movie.elements[0].orig_width
+        self.movie['height'] = self.movie.elements[0].orig_height
+        if self.audio is not None:
+            self.audio.channel = 1
+            self.audio.select = True
+            self.audio.sound.use_memory_cache = True # A/V sync
+            self.audio.name = "rs%d-audio"%(self.rsid)
 
         # add speed control to movieseq
-        MovieSeq.select = True
-        if AudioSeq is not None:
-            AudioSeq.select = False
-        # MovieSeq.frame_final_end = meta_frameend
+        self.movie.select = True
+        if self.audio is not None:
+            self.audio.select = False
         bpy.ops.sequencer.effect_strip_add(type='SPEED', channel=3)
         speed_strip = context.scene.sequence_editor.active_strip
-        # speed_strip.multiply_speed = moviefps / (render_fps / render_fps_base)
-        speed_strip.multiply_speed = float(MovieSeq.frame_final_end-MovieSeq.frame_final_start) / float(meta_frameend-MovieSeq.frame_final_start)
+        speed_strip.multiply_speed = float(self.movie.frame_final_end-self.movie.frame_final_start) / float(self.frame_end-self.movie.frame_final_start)
         speed_strip.use_frame_interpolate = True
-        speed_strip.name = "rs%d-fixfps"%rsid
-        print("scene fps:", render_fps / render_fps_base)
-        print("movie fps:", moviefps)
+        speed_strip.name = "rs%d-fixfps"%self.rsid
+
+        print("scene fps:", self.scene_fps / self.scene_fps_base)
+        print("movie fps:", self.movie_fps)
         print("speed:", speed_strip.multiply_speed)
 
-
-        # if AudioSeq is not None:
-        #     lastMovieSeq = MovieSeq
-
-        #     while lastMovieSeq.frame_final_end < AudioSeq.frame_final_end:
-        #         bpy.ops.sequencer.movie_strip_add(filepath=MovieSeq.filepath, relative_path=True, channel=2, sound=False, frame_start=lastMovieSeq.frame_final_end)
-        #         SubMovieSeq = context.scene.sequence_editor.active_strip
-
-        #         # shift sub movie sequence
-        #         offset = (lastMovieSeq.frame_final_end - MovieSeq.frame_final_start)*speed_strip.multiply_speed
-        #         bpy.ops.sequencer.slip(offset=-offset)
-        #         SubMovieSeq.frame_still_end = 0
-        #         SubMovieSeq.use_proxy = True
-
-        #         # add speed control for sub movie sequence
-        #         SubMovieSeq.select = True
-        #         bpy.ops.sequencer.effect_strip_add(type='SPEED', channel=3)
-        #         subspeed_strip = context.scene.sequence_editor.active_strip
-        #         subspeed_strip.multiply_speed = speed_strip.multiply_speed
-        #         subspeed_strip.use_frame_interpolate = True
-
-        #         lastMovieSeq = SubMovieSeq
-
-        bpy.ops.sequencer.select_all(action='DESELECT')
-        bpy.ops.sequencer.meta_toggle() # leave submeta_strip
-
-        submeta_strip.frame_final_end = meta_frameend
-        submeta_strip.channel = 1
-        submeta_strip.name = "rs%d-strip"%rsid
-        
         bpy.ops.sequencer.select_all(action='DESELECT')
         bpy.ops.sequencer.meta_toggle() # leave meta_strip
 
-        meta_strip.frame_final_end = meta_frameend
-        meta_strip.select = True
-        RichStripData.initProperty(meta_strip, rsid, MovieSeq, AudioSeq)
+        meta_strip.name = self.movie_name
+        meta_strip.frame_final_start = self.movie.frame_final_start 
+        meta_strip.frame_final_end = self.frame_end
 
-        # i don't know why the fps of blender will change automatically. we need to recover them.
-        context.scene.render.fps = render_fps
-        context.scene.render.fps_base = render_fps_base
+        return meta_strip
+
+    def execute(self, context):
+        if len(context.selected_sequences) > 2 or len(context.selected_sequences) == 0:
+            self.report({'ERROR'}, "Please select one or two strips.")
+            return {"CANCELLED"}
         
-        meta_strip.frame_final_end = meta_frameend
-        meta_strip.frame_final_start = MovieSeq.frame_final_start
+        if not self.seperate_strips(context):
+            return {"CANCELLED"}
 
+        self.read_info(context)
+
+        # assemsemby sequences
+        self.rsid = RichStripData.genRichStripId(context)
+        meta_strip = self.build_richstrip(context)
+
+        RichStripData.initProperty(meta_strip, self.rsid, self.movie, self.audio)
+        
+        self.recover_info(context)
         return {"FINISHED"}
+
+# obj['prop'] = Vector((0, 0, 0))
+# d = obj.driver_add("blend_alpha").driver
+# var = d.varibles.new()
+# var.targets[0].name = 'var'
+# var.targets[0].id = obj
+# var.targets[0].data_path = '["prop"]'
+# d.expression = 'var + 3.14'

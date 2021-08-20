@@ -23,53 +23,77 @@ class EffectOriginal(EffectBase):
 
     @classmethod
     def add(cls, context, richstrip, data, effect):
-        strips, fstart, fend = cls.enterFistLayer(richstrip)
+        cls.enterEditMode(richstrip)
 
-        data.EffectCurrentMaxChannel1 += 1
-        richstrip.sequences.get("rs%d-strip"%data.RichStripID).sequences.get("rs%d-fixfps"%data.RichStripID).select = True
-        bpy.ops.sequencer.effect_strip_add(type='TRANSFORM', frame_start=fstart, frame_end=fend, channel=data.EffectCurrentMaxChannel1)
-        adjustlayer = context.scene.sequence_editor.active_strip
-        adjustlayer.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "adjust")
+        richstrip.sequences.get("rs%d-fixfps"%data.RichStripID).select = True
+        adjustlayer = cls.addBuiltinEffectStrip(context, richstrip, effect, 'TRANSFORM', 'adjust')
+        
+        cls.addEnumProperty(effect, "transform_type", ["Scale to Fit", "Scale to Fill", "Stretch to Fill", "Original"])
+        cls.addFloatProperty(effect, "scale_x", 1)
+        cls.addFloatProperty(effect, "scale_y", 1)
+        cls.addIntProperty(effect, "pos_x", 0)
+        cls.addIntProperty(effect, "pos_y", 0)
+        cls.addBoolProperty(effect, "union_scale_lock", False)
+        cls.addBoolProperty(effect, "flip_x", False)
+        cls.addBoolProperty(effect, "flip_y", False)
 
-        # effect.EffectStrips.add().value = "rs%d-fixfps"%data.RichStripID
-        effect.EffectStrips.add().value = adjustlayer.name
+        movie = cls.getMovieStrip(richstrip)
+        audiolayer = cls.getAudioStrip(richstrip)
 
-        tranfenum = effect.EffectEnumProperties.add()
-        tranfenum.initForEffect(cls.getName(), 0)
-        tranfenum.items.add().value = "Scale to Fit"
-        tranfenum.items.add().value = "Scale to Fill"
-        tranfenum.items.add().value = "Stretch to Fill"
-        tranfenum.items.add().value = "Original"
+        audiolayer["pos_x"] = 0
+        driver = movie.transform.driver_add("offset_x").driver
+        flip = driver.variables.new()
+        flip.name = 'flip'
+        flip.targets[0].id_type = 'SCENE'
+        flip.targets[0].id = context.scene
+        flip.targets[0].data_path = 'sequence_editor.sequences_all["%s"].use_flip_x'%movie.name
+        pos = driver.variables.new()
+        pos.name = 'pos'
+        pos.targets[0].id_type = 'SCENE'
+        pos.targets[0].id = context.scene
+        pos.targets[0].data_path = 'sequence_editor.sequences_all["%s"]["pos_x"]'%audiolayer.name
+        driver.use_self = True
+        driver.expression = 'pos * (-1 if flip == 1 else 1)'
 
-        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 0, 1) #scale x
-        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 1, 1) #scale y
-        effect.EffectIntProperties.add().initForEffect(cls.getName(), 0, 0) #pos x
-        effect.EffectIntProperties.add().initForEffect(cls.getName(), 1, 0) #pos y
-        effect.EffectBoolProperties.add().initForEffect(cls.getName(), 0, False) 
-        effect.EffectBoolProperties.add().initForEffect(cls.getName(), 1, False) #flip x
-        effect.EffectBoolProperties.add().initForEffect(cls.getName(), 2, False) #flip y
+        audiolayer["pos_y"] = 0
+        driver = movie.transform.driver_add("offset_y").driver
+        flip = driver.variables.new()
+        flip.name = 'flip'
+        flip.targets[0].id_type = 'SCENE'
+        flip.targets[0].id = context.scene
+        flip.targets[0].data_path = 'sequence_editor.sequences_all["%s"].use_flip_y'%movie.name
+        pos = driver.variables.new()
+        pos.name = 'pos'
+        pos.targets[0].id_type = 'SCENE'
+        pos.targets[0].id = context.scene
+        pos.targets[0].data_path = 'sequence_editor.sequences_all["%s"]["pos_y"]'%audiolayer.name
+        driver.use_self = True
+        driver.expression = 'pos * (-1 if flip == 1 else 1)'
 
-        cls.leaveFirstLayer(data)
 
-        cls._update("ENUM", 0, context)
+        cls.leaveEditMode(data)
+
+        cls._update("ENUM", "transform_type", context) # set transform_type to first one
         return
 
     @classmethod
-    def draw(cls, context, layout, data, effect, firstlayer):
-        movielayer = firstlayer.sequences.get("rs%d-movie"%data.RichStripID)
-        audiolayer = firstlayer.sequences.get("rs%d-audio"%data.RichStripID)
-        adjustlayer = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "adjust"))
+    def draw(cls, context, layout, data, effect, richstrip):
+        movielayer = cls.getMovieStrip(richstrip)
+        audiolayer = cls.getAudioStrip(richstrip)
+        adjustlayer = cls.getEffectStrip(richstrip, "adjust")
 
         box = layout.box()
         box.row().label(text="Translate")
         row = box.row(align=True)
-        row.prop(effect.EffectIntProperties[0], "value", text="X")
-        row.prop(effect.EffectIntProperties[1], "value", text="Y")
+        # row.prop(cls.getIntProperty(effect, "pos_x"), "value", text="X")
+        # row.prop(cls.getIntProperty(effect, "pos_y"), "value", text="Y")
+        row.prop(audiolayer, '["pos_x"]', text="X")
+        row.prop(audiolayer, '["pos_y"]', text="Y")
 
         box = layout.box()
         box.label(text="Scale")
-        box.prop(effect.EffectEnumProperties[0], "value", text="Resize")
-        xylock.draw(box, effect.EffectFloatProperties[0], "value", effect.EffectFloatProperties[1], "value", effect.EffectBoolProperties[0], "value")
+        box.prop(cls.getEnumProperty(effect, "transform_type"), "value", text="Resize")
+        xylock.draw(box, cls.getFloatProperty(effect, "scale_x"), "value", cls.getFloatProperty(effect, "scale_y"), "value", cls.getBoolProperty(effect, "union_scale_lock"), "value")
 
         box = layout.box()
         box.label(text="Rotation")
@@ -79,8 +103,10 @@ class EffectOriginal(EffectBase):
         box = layout.box()
         box.label(text="Mirror")
         row = box.row(align=True)
-        row.prop(effect.EffectBoolProperties[1], "value", toggle=1, text="Flip X")
-        row.prop(effect.EffectBoolProperties[2], "value", toggle=1, text="Flip Y")
+        # row.prop(cls.getBoolProperty(effect, "flip_x"), "value", toggle=1, text="Flip X")
+        # row.prop(cls.getBoolProperty(effect, "flip_y"), "value", toggle=1, text="Flip Y")
+        row.prop(movielayer, "use_flip_x", toggle=1, text="Flip X")
+        row.prop(movielayer, "use_flip_y", toggle=1, text="Flip Y")
 
         # box = layout.box()
         # box.row().label(text="Time (Only movie)")
@@ -105,18 +131,17 @@ class EffectOriginal(EffectBase):
         return
 
     @classmethod
-    def update(cls, type, identify, context, data, effect, firstlayer):
-        adjustlayer = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "adjust"))
-        # adjustlayer = firstlayer.sequences.get("rs%d-movie"%data.RichStripID)
+    def update(cls, type, identify, context, data, effect, richstrip):
+        adjustlayer = cls.getEffectStrip(richstrip, "adjust")
 
-        if (type == 'BOOL' and (identify == 1 or identify == 2)) or (type == 'INT' and (identify == 0 or identify == 1)): #flip x/y
+        if (type == 'BOOL' and (identify != "union_scale_lock")) or (type == 'INT'): #flip x/y
             adjustlayer.use_flip_x = effect.EffectBoolProperties[1].value
             adjustlayer.use_flip_y = effect.EffectBoolProperties[2].value
             adjustlayer.transform.offset_x = effect.EffectIntProperties[0].value * (-1 if effect.EffectBoolProperties[1].value else 1)
             adjustlayer.transform.offset_y = effect.EffectIntProperties[1].value * (-1 if effect.EffectBoolProperties[2].value else 1)
             return
 
-        if (type == "ENUM" and identify == 0) or type == 'FLOAT' or type == 'BOOL':  
+        if (type == "ENUM" and identify == "transform_type") or type == 'FLOAT' or type == 'BOOL':  
 
             renderX, renderY = context.scene.render.resolution_x, context.scene.render.resolution_y
             movieX, movieY = data.ResolutionWidth, data.ResolutionHeight

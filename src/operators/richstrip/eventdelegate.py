@@ -9,7 +9,7 @@ class ICETB_OT_RichStrip_EventDelegate(bpy.types.Operator):
 
     effectName: bpy.props.StringProperty(name="The type of effect")
     eventType: bpy.props.StringProperty(name="The type of event")
-    eventIdentify: bpy.props.IntProperty(name="The identify of event")
+    eventIdentify: bpy.props.StringProperty(name="The identify of event")
 
     @classmethod
     def poll(cls, context):

@@ -47,7 +47,7 @@ def register():
         if 'setupProperty' in dir(cls):
             cls.setupProperty(True)
 
-    def updateSequenceViewport():
+    def updateSequenceViewport(data):
         bpy.ops.sequencer.refresh_all()
     
     if kcfg is not None:

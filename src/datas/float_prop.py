@@ -2,7 +2,7 @@ import bpy
 
 class FloatProperty(bpy.types.PropertyGroup):
     effectbelong: bpy.props.StringProperty(name="The parent", default="")
-    effectidentify: bpy.props.IntProperty(name="The identify number for update event")
+    effectidentify: bpy.props.StringProperty(name="The identify for update event")
 
     def initForEffect(self, belong, identify, value=None):
         self.effectbelong = belong

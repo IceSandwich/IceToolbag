@@ -5,7 +5,7 @@ class EnumProperty(bpy.types.PropertyGroup):
     items: bpy.props.CollectionProperty(type=StringProperty)
 
     effectbelong: bpy.props.StringProperty(name="The parent", default="")
-    effectidentify: bpy.props.IntProperty(name="The identify number for update event")
+    effectidentify: bpy.props.StringProperty(name="The identify for update event")
 
     def initForEffect(self, belong, identify, value=None):
         self.effectbelong = belong

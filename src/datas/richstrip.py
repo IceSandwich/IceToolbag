@@ -46,6 +46,7 @@ class RichStripEffect(bpy.types.PropertyGroup):
     EffectFloatProperties: bpy.props.CollectionProperty(type=FloatProperty)
     EffectEnumProperties: bpy.props.CollectionProperty(type=EnumProperty)
     EffectBoolProperties: bpy.props.CollectionProperty(type=BoolProperty)
+    EffectMappingJson: bpy.props.StringProperty(name="Mapping property name to index", default='{"Str":{},"Int":{},"Float":{},"Enum":{},"Bool":{}}')
 
 class RichStripData(bpy.types.PropertyGroup):
     # RichStrip information
@@ -114,7 +115,7 @@ class RichStripData(bpy.types.PropertyGroup):
 
     @classmethod
     def checkProperty(cls, ctx, seq):
-        return ('IceTB_richstrip_data' in dir(seq) and seq.IceTB_richstrip_data is not None and seq.IceTB_richstrip_data.IsRichStrip == True)
+        return (hasattr(seq, 'IceTB_richstrip_data') and seq.IceTB_richstrip_data is not None and seq.IceTB_richstrip_data.IsRichStrip == True)
 
     @classmethod
     def getProperty(cls, seq):
