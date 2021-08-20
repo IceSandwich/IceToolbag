@@ -2,7 +2,7 @@ import bpy
 
 class BoolProperty(bpy.types.PropertyGroup):
     effectbelong: bpy.props.StringProperty(name="The parent", default="")
-    effectidentify: bpy.props.IntProperty(name="The identify number for update event")
+    effectidentify: bpy.props.IntProperty(name="The identify number for update event", options={'ANIMATABLE'})
 
     def initForEffect(self, belong, identify, value=None):
         self.effectbelong = belong
