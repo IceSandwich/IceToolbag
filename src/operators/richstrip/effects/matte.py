@@ -31,7 +31,7 @@ class EffectMatte(EffectBase):
 
     def stage_SequenceDefination(self, relinkStage):
         if relinkStage:
-            self.adjustlayer = self.getEffectStrip(self.richstrip, "adjust")
+            self.adjustlayer = self.getEffectStrip(self.richstrip, self.effect, "adjust")
             return
 
         self.adjustlayer = self.addBuiltinStrip('GAUSSIAN_BLUR', "adjust")
@@ -101,8 +101,8 @@ class EffectMatte(EffectBase):
 
     @classmethod
     def draw(cls, context, layout, data, effect, richstrip):
-        transflayer = cls.getEffectStrip(richstrip, "transf")
-        adjustlayer = cls.getEffectStrip(richstrip, "adjust")
+        transflayer = cls.getEffectStrip(richstrip, effect, "transf")
+        adjustlayer = cls.getEffectStrip(richstrip, effect, "adjust")
 
         layout.prop(transflayer, "mute", toggle=0, text="Only Matte")
 
@@ -122,8 +122,8 @@ class EffectMatte(EffectBase):
     @classmethod
     def update(cls, type, identify, context, data, effect, richstrip):
         if type == 'FLOAT':
-            adjustlayer = cls.getEffectStrip(richstrip, "adjust")
-            transflayer = cls.getEffectStrip(richstrip, "transf")
+            adjustlayer = cls.getEffectStrip(richstrip, effect, "adjust")
+            transflayer = cls.getEffectStrip(richstrip, effect, "transf")
 
             fg = cls.getFloatProperty(effect, "foreground").value
             bg = cls.getFloatProperty(effect, "background").value

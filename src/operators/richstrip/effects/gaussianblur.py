@@ -16,7 +16,7 @@ class EffectGaussianBlur(EffectBase):
 
     def stage_SequenceDefination(self, relinkStage):
         if relinkStage:
-            self.blurlayer = self.getEffectStrip(self.richstrip, "blur")
+            self.blurlayer = self.getEffectStrip(self.richstrip, self.effect, "blur")
             return
         self.blurlayer = self.addBuiltinStrip('GAUSSIAN_BLUR', "blur")
         self.addBuiltinStrip('ADJUSTMENT', "adjust")
@@ -32,7 +32,7 @@ class EffectGaussianBlur(EffectBase):
 
     @classmethod
     def draw(cls, context, layout, data, effect, richstrip):
-        blurlayer = cls.getEffectStrip(richstrip, "blur")
+        blurlayer = cls.getEffectStrip(richstrip, effect, "blur")
 
         layout.label(text="Blur Size:")
         xylock.draw(layout, blurlayer, "size_x", blurlayer, cls.genbinderName(effect, "size_y", True), cls.getBoolProperty(effect, "union_size_lock"), "value")

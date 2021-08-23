@@ -12,8 +12,8 @@ class EffectFastBlur(EffectBase):
 
     def stage_SequenceDefination(self, relinkStage):
         if relinkStage:
-            self.transsmlayer = self.getEffectStrip(self.richstrip, "sm")
-            self.translglayer = self.getEffectStrip(self.richstrip, "lg")
+            self.transsmlayer = self.getEffectStrip(self.richstrip, self.effect, "sm")
+            self.translglayer = self.getEffectStrip(self.richstrip, self.effect, "lg")
             return
 
         self.transsmlayer = self.addBuiltinStrip('TRANSFORM', "sm")
@@ -59,9 +59,9 @@ class EffectFastBlur(EffectBase):
 
     @classmethod
     def draw(cls, context, layout, data, effect, richstrip):
-        smtranf = cls.getEffectStrip(richstrip, "sm")
-        mdtranf = cls.getEffectStrip(richstrip, "md")
-        lgtranf = cls.getEffectStrip(richstrip, "lg")
+        smtranf = cls.getEffectStrip(richstrip, effect, "sm")
+        mdtranf = cls.getEffectStrip(richstrip, effect, "md")
+        lgtranf = cls.getEffectStrip(richstrip, effect, "lg")
 
         layout.label(text="Blur Strong:")
         xylock.draw(layout, smtranf, cls.genbinderName(effect, "strongX", True), smtranf, cls.genbinderName(effect, "strongY", True), smtranf, "use_uniform_scale")

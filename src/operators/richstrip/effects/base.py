@@ -130,9 +130,8 @@ class EffectBase():
     ################################################################
 
     @classmethod
-    def getEffectStrip(cls, richstrip, effectName):
+    def getEffectStrip(cls, richstrip, effect, effectName):
         data = richstrip.IceTB_richstrip_data
-        effect = data.getSelectedEffect()
         return richstrip.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, effectName))
 
     @classmethod

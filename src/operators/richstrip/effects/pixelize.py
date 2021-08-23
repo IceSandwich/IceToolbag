@@ -23,8 +23,8 @@ class EffectPixelize(EffectBase):
 
     def stage_SequenceDefination(self, relinkStage):
         if relinkStage:
-            self.transsmlayer = self.getEffectStrip(self.richstrip, "sm")
-            self.translglayer = self.getEffectStrip(self.richstrip, "lg")
+            self.transsmlayer = self.getEffectStrip(self.richstrip, self.effect, "sm")
+            self.translglayer = self.getEffectStrip(self.richstrip, self.effect, "lg")
             return
 
         self.transsmlayer = self.addBuiltinStrip('TRANSFORM', "sm")
@@ -58,8 +58,8 @@ class EffectPixelize(EffectBase):
 
     @classmethod
     def draw(cls, context, layout, data, effect, richstrip):
-        smtranf = cls.getEffectStrip(richstrip, "sm")
-        lgtranf = cls.getEffectStrip(richstrip, "lg")
+        smtranf = cls.getEffectStrip(richstrip, effect, "sm")
+        lgtranf = cls.getEffectStrip(richstrip, effect, "lg")
 
         layout.label(text="Pixelize Strong:")
         xylock.draw(layout, smtranf, cls.genbinderName(effect, "strongX", True), smtranf, cls.genbinderName(effect, "strongY", True), smtranf, "use_uniform_scale")

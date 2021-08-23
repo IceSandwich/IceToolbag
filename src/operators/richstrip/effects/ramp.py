@@ -86,7 +86,7 @@ class EffectRamp(EffectBase):
     @classmethod
     def update(cls, type, identify, context, data, effect, richstrip):
         if type == 'FLOAT':
-            adjustlayer = cls.getEffectStrip(richstrip, "adjust")
+            adjustlayer = cls.getEffectStrip(richstrip, effect, "adjust")
 
             x1, x2 = cls.getFloatProperty(effect, "blackpoint").value, cls.getFloatProperty(effect, "whitepoint").value
             y1, y2 = cls.getFloatProperty(effect, "lift").value, cls.getFloatProperty(effect, "gain").value

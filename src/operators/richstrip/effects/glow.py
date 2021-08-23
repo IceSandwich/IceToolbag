@@ -23,7 +23,7 @@ class EffectGlow(EffectBase):
 
     @classmethod
     def draw(cls, context, layout, data, effect, richstrip):
-        glowlayer = cls.getEffectStrip(richstrip, "glow")
+        glowlayer = cls.getEffectStrip(richstrip, effect, "glow")
 
         layout.label(text="Glow:")
         layout.prop(glowlayer, "threshold", text="Threshold")

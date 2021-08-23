@@ -77,7 +77,7 @@ class EffectOriginal(EffectBase):
     def draw(cls, context, layout, data, effect, richstrip):
         movielayer = cls.getMovieStrip(richstrip)
         audiolayer = cls.getAudioStrip(richstrip)
-        adjustlayer = cls.getEffectStrip(richstrip, "adjust")
+        adjustlayer = cls.getEffectStrip(richstrip, effect, "adjust")
 
         box = layout.box()
         box.row().label(text="Translate")

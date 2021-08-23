@@ -21,7 +21,7 @@ class EffectBrightContrast(EffectBase):
 
     @classmethod
     def draw(cls, context, layout, data, effect, richstrip):
-        adjustlayer = cls.getEffectStrip(richstrip, "adjust")
+        adjustlayer = cls.getEffectStrip(richstrip, effect, "adjust")
         modifier = adjustlayer.modifiers.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "bc"))
 
         layout.prop(modifier, "bright")
