@@ -23,7 +23,8 @@ bl_info = {
     "version" : (0, 0, 1),
     "location" : "",
     "warning" : "",
-    "category" : "Sequencer"
+    "category" : "Sequencer",
+    "wiki_url" : "https://github.com/IceSandwich/IceToolbag"
 }
 
 classes = ICETB_CLASSES
