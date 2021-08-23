@@ -9,13 +9,15 @@ class ICETB_OT_RichStrip_EventDelegate(bpy.types.Operator):
 
     effectName: bpy.props.StringProperty(name="The type of effect")
     eventType: bpy.props.StringProperty(name="The type of event")
-    eventIdentify: bpy.props.IntProperty(name="The identify of event")
+    eventIdentify: bpy.props.StringProperty(name="The identify of event")
 
     @classmethod
     def poll(cls, context):
         return True
 
     def execute(self, context):
+        if len(context.selected_sequences) < 1: # i don't know why
+            return {'FINISHED'}
         if self.effectName in ICETB_EFFECTS_NAMES:
             ICETB_EFFECTS_DICTS[self.effectName]._update(self.eventType, self.eventIdentify, context)
         else:

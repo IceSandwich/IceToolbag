@@ -19,27 +19,27 @@ class EffectMatte(EffectBase):
     def getName(cls):
         return "Matte"
 
-    @classmethod
-    def add(cls, context, richstrip, data, effect):
-        effectlast = data.Effects[-2].EffectStrips[-1].value
-        strips, fstart, fend = cls.enterFistLayer(richstrip)
+    def stage_PropertyDefination(self):
+        self.addFloatProperty(self.effect, "foreground", 1)
+        self.addFloatProperty(self.effect, "background", 0)
+        self.addFloatProperty(self.effect, "blackclip", 0)
+        self.addFloatProperty(self.effect, "whiteclip", 0)
+        self.addFloatProperty(self.effect, "despillamount", 0)
+        self.addFloatProperty(self.effect, "despillrange", 0)
 
-        data.EffectCurrentMaxChannel1 += 1
-        strips.get(effectlast).select = True
-        bpy.ops.sequencer.effect_strip_add(type='GAUSSIAN_BLUR', frame_start=fstart, frame_end=fend, channel=data.EffectCurrentMaxChannel1)
-        adjustlayer = context.scene.sequence_editor.active_strip
-        adjustlayer.size_x = adjustlayer.size_y = 10
-        adjustlayer.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "adjust")
+        self.addBoolProperty(self.effect, "union_size_lock", True)
 
-        data.EffectCurrentMaxChannel1 += 1
-        strips.get(effectlast).select = True
-        bpy.ops.sequencer.effect_strip_add(type='TRANSFORM', frame_start=fstart, frame_end=fend, channel=data.EffectCurrentMaxChannel1)
-        translayer = context.scene.sequence_editor.active_strip
-        translayer.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "transf")
+    def stage_SequenceDefination(self, relinkStage):
+        if relinkStage:
+            self.adjustlayer = self.getEffectStrip(self.richstrip, "adjust")
+            return
 
-        effect.EffectStrips.add().value = adjustlayer.name
-        effect.EffectStrips.add().value = translayer.name
-        
+        self.adjustlayer = self.addBuiltinStrip('GAUSSIAN_BLUR', "adjust")
+        self.adjustlayer.size_x = self.adjustlayer.size_y = 10
+
+        self.richstrip.sequences.get(self.data.Effects[-2].EffectStrips[-1].value).select = True
+        self.translayer = self.addBuiltinStrip('TRANSFORM', "transf")
+
         # green band
         bandWidth = 1.0/6
         greenStart = bandWidth*1+bandWidth*0.5
@@ -53,7 +53,7 @@ class EffectMatte(EffectBase):
         cyanNearMid = cyanMid - bandWidth/3.0/2.0
         cyanEnd = bandWidth*3+bandWidth*0.5
 
-        mapping = adjustlayer.modifiers.new(cls.genRegularStripName(data.RichStripID, effect.EffectId, "matte_curves"), "HUE_CORRECT").curve_mapping
+        mapping = self.adjustlayer.modifiers.new(self.genRegularStripName(self.data.RichStripID, self.effect.EffectId, "matte_curves"), "HUE_CORRECT").curve_mapping
         _, S, V = mapping.curves
         for p in S.points:
             p.location.y = 0
@@ -68,12 +68,11 @@ class EffectMatte(EffectBase):
         V.points.new(cyanNearMid, 0)
         V.points.new(cyanMid, 1)
 
-        adjustlayer.modifiers.new(cls.genRegularStripName(data.RichStripID, effect.EffectId, "matte_adjust"), "CURVES")
+        self.adjustlayer.modifiers.new(self.genRegularStripName(self.data.RichStripID, self.effect.EffectId, "matte_adjust"), "CURVES")
 
 
-
-        translayer.modifiers.new(cls.genRegularStripName(data.RichStripID, effect.EffectId, "mask"), "MASK").input_mask_strip = adjustlayer
-        mapping = translayer.modifiers.new(cls.genRegularStripName(data.RichStripID, effect.EffectId, "despill_curves"), "HUE_CORRECT").curve_mapping
+        self.translayer.modifiers.new(self.genRegularStripName(self.data.RichStripID, self.effect.EffectId, "mask"), "MASK").input_mask_strip = self.adjustlayer
+        mapping = self.translayer.modifiers.new(self.genRegularStripName(self.data.RichStripID, self.effect.EffectId, "despill_curves"), "HUE_CORRECT").curve_mapping
         _, S, _ = mapping.curves
         for i in range(len(S.points)-1, -1, -1):
             if S.points[i].location.x == 1 or S.points[i].location.x == 0:
@@ -86,52 +85,52 @@ class EffectMatte(EffectBase):
         S.points.new(cyanNearMid, 0)
         S.points.new(cyanMid, 0.5)
 
-        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 0, 1)
-        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 1, 0)
-        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 2, 0)
-        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 3, 0)
-        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 4, adjustlayer.size_x)
-        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 5, 0)
-        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 6, 0)
-
-        effect.EffectBoolProperties.add().initForEffect(cls.getName(), 0, True)
-
-        cls.leaveFirstLayer(data)
-        return
+    def stage_BinderDefination(self):
+        self.addPropertyWithBinding(self.context, self.adjustlayer, "size_y", self.genbinderName(self.effect, "size_y"), [{
+            "name": "lock",
+            "seqName": self.richstrip.name,
+            "seqProp": self.genseqProp(self.effect, "Bool", "union_size_lock"),
+            "isCustomProp": False
+        }], "self.size_x if lock == 1 else bind")
+        self.addPropertyWithDriver(self.context, self.adjustlayer, "mute", [{
+            "name": "onlymatte",
+            "seqName": self.translayer.name,
+            "seqProp": "mute",
+            "isCustomProp": False
+        }], '1 if onlymatte == 0 else 0')
 
     @classmethod
-    def draw(cls, context, layout, data, effect, firstlayer):
-        transflayer = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "transf"))
-        adjustlayer = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "adjust"))
+    def draw(cls, context, layout, data, effect, richstrip):
+        transflayer = cls.getEffectStrip(richstrip, "transf")
+        adjustlayer = cls.getEffectStrip(richstrip, "adjust")
 
         layout.prop(transflayer, "mute", toggle=0, text="Only Matte")
 
-        layout.prop(effect.EffectFloatProperties[0], "value", text="Foreground")
-        layout.prop(effect.EffectFloatProperties[1], "value", text="Background")
-        layout.prop(effect.EffectFloatProperties[2], "value", text="Black Clip")
-        layout.prop(effect.EffectFloatProperties[3], "value", text="White Clip")
+        layout.prop(cls.getFloatProperty(effect, "foreground"), "value", text="Foreground")
+        layout.prop(cls.getFloatProperty(effect, "background"), "value", text="Background")
+        layout.prop(cls.getFloatProperty(effect, "blackclip"), "value", text="Black Clip")
+        layout.prop(cls.getFloatProperty(effect, "whiteclip"), "value", text="White Clip")
 
-        layout.prop(effect.EffectFloatProperties[5], "value", text="Despill Amount")
-        layout.prop(effect.EffectFloatProperties[6], "value", text="Despill Range")
+        layout.prop(cls.getFloatProperty(effect, "despillamount"), "value", text="Despill Amount")
+        layout.prop(cls.getFloatProperty(effect, "despillrange"), "value", text="Despill Range")
 
         layout.label(text="Blur:")
-        xylock.draw(layout, effect.EffectFloatProperties[4], "value", adjustlayer, "size_y", effect.EffectBoolProperties[0], "value")
+        xylock.draw(layout, adjustlayer, "size_x", adjustlayer, cls.genbinderName(effect, "size_y", True), cls.getBoolProperty(effect, "union_size_lock"), "value")
 
         return
 
     @classmethod
-    def update(cls, type, identify, context, data, effect, firstlayer):
+    def update(cls, type, identify, context, data, effect, richstrip):
         if type == 'FLOAT':
-            adjustlayer = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "adjust"))
-            transflayer = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "transf"))
+            adjustlayer = cls.getEffectStrip(richstrip, "adjust")
+            transflayer = cls.getEffectStrip(richstrip, "transf")
 
-            fg, bg, bc, wc = effect.EffectFloatProperties[0].value, effect.EffectFloatProperties[1].value, effect.EffectFloatProperties[2].value, effect.EffectFloatProperties[3].value
-            blurx, despill_amount, despill_range = effect.EffectFloatProperties[4].value, effect.EffectFloatProperties[5].value, effect.EffectFloatProperties[6].value
-            
-            adjustlayer.size_x = blurx
-            if effect.EffectBoolProperties[0].value:
-                adjustlayer.size_y = blurx
-
+            fg = cls.getFloatProperty(effect, "foreground").value
+            bg = cls.getFloatProperty(effect, "background").value
+            bc = cls.getFloatProperty(effect, "blackclip").value
+            wc = cls.getFloatProperty(effect, "whiteclip").value
+            despill_amount = cls.getFloatProperty(effect, "despillamount").value
+            despill_range = cls.getFloatProperty(effect, "despillrange").value
 
             # green band
             bandWidth = 1.0/6
@@ -175,6 +174,6 @@ class EffectMatte(EffectBase):
 
             mapping.update()
 
-            bpy.ops.sequencer.refresh_all()
+            return True
 
-        return
+        return False

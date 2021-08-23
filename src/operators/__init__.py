@@ -10,6 +10,7 @@ from .richstrip.addeffect import ICETB_OT_RichStrip_Add
 from .richstrip.deleffect import ICETB_OT_RichStrip_Delete
 from .richstrip.mveffect import ICETB_OT_RichStrip_Move
 from .richstrip.eventdelegate import ICETB_OT_RichStrip_EventDelegate
+from .richstrip.rebuild import ICETB_OT_RichStrip_Rebuild, ICETB_OT_RichStrip_NoRebuild
 
 ICETB_OPERATORS_CLASSES = [
     ICETB_OT_Marker_RenameLayer,
@@ -24,4 +25,6 @@ ICETB_OPERATORS_CLASSES = [
     ICETB_OT_RichStrip_Delete,
     ICETB_OT_RichStrip_Move,
     ICETB_OT_RichStrip_EventDelegate,
+    ICETB_OT_RichStrip_Rebuild,
+    ICETB_OT_RichStrip_NoRebuild
 ]

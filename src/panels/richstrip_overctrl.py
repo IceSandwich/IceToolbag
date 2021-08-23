@@ -1,4 +1,4 @@
-import bpy
+import bpy, re
 from ..datas.richstrip import RichStripData
 from ..operators.richstrip.effects import ICETB_EFFECTS_DICTS
 from ..operators.richstrip.effects.widgets import xylock
@@ -17,10 +17,11 @@ class ICETB_PT_RichStripEffectCTL(bpy.types.Panel):
         seq = context.selected_sequences[0]
         if not RichStripData.checkProperty(context, seq):
             return False
-        return True
-        data = context.selected_sequences[0].IceTB_richstrip_data
-        if data.EffectsCurrent >= len(data.Effects):
+        data = seq.IceTB_richstrip_data
+        if not data.ForceNoDuplicateTip and re.compile(".*?\\.[0-9]{1,3}$").match(seq.name):
             return False
+        # if data.EffectsCurrent >= len(data.Effects):
+        #     return False
         return True
 
     def draw(self, context):
@@ -28,14 +29,13 @@ class ICETB_PT_RichStripEffectCTL(bpy.types.Panel):
 
         richstrip = context.selected_sequences[0]
         data = richstrip.IceTB_richstrip_data
-        firstlayer = richstrip.sequences.get("rs%d-strip"%data.RichStripID)
         effect = data.getSelectedEffect()
 
         if effect.EffectType == "Original":
             layout.label(text="This effect doesn't support after effect.")
             return
 
-        adjustlayer = firstlayer.sequences.get(effect.EffectStrips[-1].value)
+        adjustlayer = richstrip.sequences.get(effect.EffectStrips[-1].value)
 
         trans = layout.box()
         row = trans.row()

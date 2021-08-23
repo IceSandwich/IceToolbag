@@ -13,6 +13,7 @@
 
 import bpy
 from .src import *
+from bpy.app.handlers import persistent
 
 bl_info = {
     "name" : "IceToolbag",
@@ -31,6 +32,22 @@ seqmsgbus = ICETB_MSGBUS
 seqPreview_km = None # Key map for sequence preview window
 addon_keymaps = []
 
+depsgraphUpdateDisable = False
+
+def updateSequenceViewport():
+    bpy.ops.sequencer.refresh_all()
+
+@persistent
+def updateSequenceViewportPersistent(scene):
+    global depsgraphUpdateDisable
+    # bpy.app.handlers.depsgraph_update_post.remove(updateSequenceViewportPersistent)
+    if scene.IceTB_richstrip_automatic_viewport_update and not depsgraphUpdateDisable:
+        depsgraphUpdateDisable = True
+        # print("update from depsgraph")
+        bpy.ops.sequencer.refresh_all()
+        depsgraphUpdateDisable = False
+    # bpy.app.handlers.depsgraph_update_post.append(updateSequenceViewportPersistent)
+
 def register():
     global seqPreview_km
     global addon_keymaps
@@ -40,15 +57,12 @@ def register():
         seqPreview_km = kcfg.keymaps.new(name="IceToolbag_seqPreview", space_type="SEQUENCE_EDITOR", region_type="WINDOW")
     for cls in classes:
         bpy.utils.register_class(cls)
-        if kcfg and 'setupKey' in dir(cls):
+        if kcfg and hasattr(cls, 'setupKey'):
             cls.setupKey(seqPreview_km)
-        if 'setupMenu' in dir(cls):
+        if hasattr(cls, 'setupMenu'):
             cls.setupMenu(True)
-        if 'setupProperty' in dir(cls):
+        if hasattr(cls, 'setupProperty'):
             cls.setupProperty(True)
-
-    def updateSequenceViewport():
-        bpy.ops.sequencer.refresh_all()
     
     if kcfg is not None:
         addon_keymaps.append(seqPreview_km)
@@ -60,15 +74,17 @@ def register():
             args=(),
             notify=updateSequenceViewport,
         )
-    
+
+    bpy.app.handlers.depsgraph_update_post.append(updateSequenceViewportPersistent)
+    print("Register handler for depsgraph")
 
 def unregister():
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
 
-        if 'setupMenu' in dir(cls):
+        if hasattr(cls, 'setupMenu'):
             cls.setupMenu(False)
-        if 'setupProperty' in dir(cls):
+        if hasattr(cls, 'setupProperty'):
             cls.setupProperty(False)
 
     for km in addon_keymaps:
@@ -76,4 +92,13 @@ def unregister():
 
     addon_keymaps.clear()
 
-    bpy.msgbus.clear_by_owner(seqmsgbus)
+    bpy.app.handlers.depsgraph_update_post.remove(updateSequenceViewportPersistent)
+    print("Unregister handler for desgraph")
+
+    # bpy.msgbus.clear_by_owner(seqmsgbus)
+
+
+#https://docs.blender.org/api/current/bpy.app.handlers.html
+#https://blender.stackexchange.com/questions/3313/animate-string-property
+#https://developer.blender.org/T77126
+#https://devtalk.blender.org/t/update-property-when-active-tool-changes/11467/13

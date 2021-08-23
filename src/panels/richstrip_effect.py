@@ -1,4 +1,4 @@
-import bpy
+import bpy, re
 from ..datas.richstrip import RichStripData
 from ..operators.richstrip.effects import ICETB_EFFECTS_DICTS
 
@@ -16,10 +16,11 @@ class ICETB_PT_RichStripEffect(bpy.types.Panel):
         seq = context.selected_sequences[0]
         if not RichStripData.checkProperty(context, seq):
             return False
-        return True
-        data = context.selected_sequences[0].IceTB_richstrip_data
-        if data.EffectsCurrent >= len(data.Effects):
+        data = seq.IceTB_richstrip_data
+        if not data.ForceNoDuplicateTip and re.compile(".*?\\.[0-9]{1,3}$").match(seq.name):
             return False
+        # if data.EffectsCurrent >= len(data.Effects):
+        #     return False
         return True
 
     def draw(self, context):

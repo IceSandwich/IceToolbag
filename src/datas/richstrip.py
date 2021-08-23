@@ -46,11 +46,14 @@ class RichStripEffect(bpy.types.PropertyGroup):
     EffectFloatProperties: bpy.props.CollectionProperty(type=FloatProperty)
     EffectEnumProperties: bpy.props.CollectionProperty(type=EnumProperty)
     EffectBoolProperties: bpy.props.CollectionProperty(type=BoolProperty)
+    EffectMappingJson: bpy.props.StringProperty(name="Mapping property name to index", default='{"Str":{},"Int":{},"Float":{},"Enum":{},"Bool":{}}')
 
 class RichStripData(bpy.types.PropertyGroup):
     # RichStrip information
     IsRichStrip: bpy.props.BoolProperty(name="Is it an rich strip?", default=False)
     RichStripID: bpy.props.IntProperty(name="The unique id for rich strip", default=-1)
+    Version: bpy.props.IntProperty(name="The version of richstrip", default=0) # compatibility
+    ForceNoDuplicateTip: bpy.props.BoolProperty(name="Do not show rebuild tip when select duplicated strip", default=False)
 
     # Strip information
     HasAudio: bpy.props.BoolProperty(name="If this rich strip contains audio", default=False)
@@ -81,10 +84,10 @@ class RichStripData(bpy.types.PropertyGroup):
         if is_setup:
             sequence.IceTB_richstrip_data = bpy.props.PointerProperty(type=RichStripData)
             scene.IceTB_richstrip_gen_richstripid = bpy.props.IntProperty(name="The id generator for rich strip", default=0)
-            print("Property defined")
+            print("Property richstrip defined")
         else:
             sequence.IceTB_richstrip_data = None
-            print("Property uninstalled")
+            print("Property richstrip uninstalled")
 
     @classmethod
     def initProperty(cls, richstrip, rsid, moviestrip, audiostrip=None):
@@ -114,7 +117,7 @@ class RichStripData(bpy.types.PropertyGroup):
 
     @classmethod
     def checkProperty(cls, ctx, seq):
-        return ('IceTB_richstrip_data' in dir(seq) and seq.IceTB_richstrip_data is not None and seq.IceTB_richstrip_data.IsRichStrip == True)
+        return (hasattr(seq, 'IceTB_richstrip_data') and seq.IceTB_richstrip_data is not None and seq.IceTB_richstrip_data.IsRichStrip == True)
 
     @classmethod
     def getProperty(cls, seq):
@@ -123,7 +126,7 @@ class RichStripData(bpy.types.PropertyGroup):
     def addEffect(self, effectType):
         effect = self.Effects.add()
         effect.EffectType = effectType
-        effect.EffectIndex = len(self.Effects)
+        effect.EffectIndex = len(self.Effects)-1
         if effectType == "Copy":
             effect.EffectInputId = self.EffectsCurrent
         else:

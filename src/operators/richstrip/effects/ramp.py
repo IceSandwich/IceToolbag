@@ -42,16 +42,10 @@ class EffectRamp(EffectBase):
 
     @classmethod
     def add(cls, context, richstrip, data, effect):
-        effectlast = data.Effects[-2].EffectStrips[-1].value
-        strips, fstart, fend = cls.enterFistLayer(richstrip)
+        cls.enterEditMode(richstrip)
 
-        data.EffectCurrentMaxChannel1 += 1
-        bpy.ops.sequencer.effect_strip_add(type='ADJUSTMENT', frame_start=fstart, frame_end=fend, channel=data.EffectCurrentMaxChannel1)
-        adjustlayer = context.scene.sequence_editor.active_strip
-        # adjustlayer.use_translation = True
-        adjustlayer.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "adjust")
-
-        effect.EffectStrips.add().value = adjustlayer.name
+        richstrip.sequences.get(data.Effects[-2].EffectStrips[-1].value).select = True
+        adjustlayer = cls.addBuiltinEffectStrip(context, richstrip, effect, 'ADJUSTMENT', "adjust")
 
         curves = adjustlayer.modifiers.new(cls.genRegularStripName(data.RichStripID, effect.EffectId, "curves"), "CURVES")
         mapping = curves.curve_mapping
@@ -61,38 +55,44 @@ class EffectRamp(EffectBase):
             val = float(i)/255.0
             C.points.new(val, val)
 
-        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 0, 0)
-        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 1, 1)
-        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 2, 0)
-        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 3, 1)
-        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 4, 1)
-        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 5, 0)
-        effect.EffectFloatProperties.add().initForEffect(cls.getName(), 6, 1)
+        cls.addFloatProperty(effect, "blackpoint", 0.0)
+        cls.addFloatProperty(effect, "whitepoint", 1.0)
+        cls.addFloatProperty(effect, "lift", 0.0)
+        cls.addFloatProperty(effect, "gain", 1.0)
+        cls.addFloatProperty(effect, "multiply", 1.0)
+        cls.addFloatProperty(effect, "offset", 0.0)
+        cls.addFloatProperty(effect, "gamma", 1.0)
 
-        cls.leaveFirstLayer(data)
+        cls.leaveEditMode(data)
         return
 
     @classmethod
-    def draw(cls, context, layout, data, effect, firstlayer):
+    def relink(cls, context, richstrip, effect):
+        return
 
-        layout.prop(effect.EffectFloatProperties[0], "value", text="Blackpoint")
-        layout.prop(effect.EffectFloatProperties[1], "value", text="Whitepoint")
-        layout.prop(effect.EffectFloatProperties[2], "value", text="Lift")
-        layout.prop(effect.EffectFloatProperties[3], "value", text="Gain")
-        layout.prop(effect.EffectFloatProperties[4], "value", text="Multiply")
-        layout.prop(effect.EffectFloatProperties[5], "value", text="Offset")
-        layout.prop(effect.EffectFloatProperties[6], "value", text="Gamma")
+    @classmethod
+    def draw(cls, context, layout, data, effect, richstrip):
+
+        layout.prop(cls.getFloatProperty(effect, "blackpoint"), "value", text="Blackpoint")
+        layout.prop(cls.getFloatProperty(effect, "whitepoint"), "value", text="Whitepoint")
+        layout.prop(cls.getFloatProperty(effect, "lift"), "value", text="Lift")
+        layout.prop(cls.getFloatProperty(effect, "gain"), "value", text="Gain")
+        layout.prop(cls.getFloatProperty(effect, "multiply"), "value", text="Multiply")
+        layout.prop(cls.getFloatProperty(effect, "offset"), "value", text="Offset")
+        layout.prop(cls.getFloatProperty(effect, "gamma"), "value", text="Gamma")
 
         return
 
     @classmethod
-    def update(cls, type, identify, context, data, effect, firstlayer):
+    def update(cls, type, identify, context, data, effect, richstrip):
         if type == 'FLOAT':
-            adjustlayer = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "adjust"))
+            adjustlayer = cls.getEffectStrip(richstrip, "adjust")
 
-            x1, x2 = effect.EffectFloatProperties[0].value, effect.EffectFloatProperties[1].value
-            y1, y2 = effect.EffectFloatProperties[2].value, effect.EffectFloatProperties[3].value
-            multiply, offset, gamma = effect.EffectFloatProperties[4].value, effect.EffectFloatProperties[5].value, effect.EffectFloatProperties[6].value
+            x1, x2 = cls.getFloatProperty(effect, "blackpoint").value, cls.getFloatProperty(effect, "whitepoint").value
+            y1, y2 = cls.getFloatProperty(effect, "lift").value, cls.getFloatProperty(effect, "gain").value
+            multiply = cls.getFloatProperty(effect, "multiply").value
+            offset = cls.getFloatProperty(effect, "offset").value
+            gamma = cls.getFloatProperty(effect, "gamma").value
 
             curves = adjustlayer.modifiers.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "curves"))
             mapping = curves.curve_mapping
@@ -107,6 +107,7 @@ class EffectRamp(EffectBase):
                 C.points[i].location.y = k*pow(C.points[i].location.x - C.points[0].location.x, gamma)+C.points[0].location.y
 
             mapping.update()
-            bpy.ops.sequencer.refresh_all()
 
-        return
+            return True
+
+        return False
