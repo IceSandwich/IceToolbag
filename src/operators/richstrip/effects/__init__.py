@@ -4,6 +4,7 @@ from .fastblur import EffectFastBlur
 from .pixelize import EffectPixelize
 from .glow import EffectGlow
 from .gaussianblur import EffectGaussianBlur
+from .brightcontrast import EffectBrightContrast
 from .ramp import EffectRamp
 from .matte import EffectMatte
 
@@ -14,6 +15,7 @@ ICETB_EFFECTS_CLASSES = [
     EffectPixelize,
     EffectGlow,
     EffectGaussianBlur,
+    EffectBrightContrast,
     EffectRamp,
     EffectMatte
 ]

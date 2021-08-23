@@ -8,31 +8,18 @@ class EffectGlow(EffectBase):
 
     @classmethod
     def add(cls, context, richstrip, data, effect):
-        effectlast = data.Effects[-2].EffectStrips[-1].value
-        # effectlast = data.getSelectedEffect().EffectStrips[-1].value
-        strips, fstart, fend = cls.enterFistLayer(richstrip)
+        cls.enterEditMode(richstrip)
 
-        data.EffectCurrentMaxChannel1 += 1
-        strips.get(effectlast).select = True
-        bpy.ops.sequencer.effect_strip_add(type='GLOW', frame_start=fstart, frame_end=fend, channel=data.EffectCurrentMaxChannel1)
-        glowlayer = context.scene.sequence_editor.active_strip
-        glowlayer.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "glow")
+        richstrip.sequences.get(data.Effects[-2].EffectStrips[-1].value).select = True
+        glowlayer = cls.addBuiltinEffectStrip(context, richstrip, effect, 'GLOW', "glow")
+        adjustlayer = cls.addBuiltinEffectStrip(context, richstrip, effect, 'ADJUSTMENT', "adjust")
 
-        data.EffectCurrentMaxChannel1 += 1
-        bpy.ops.sequencer.effect_strip_add(type='ADJUSTMENT', frame_start=fstart, frame_end=fend, channel=data.EffectCurrentMaxChannel1)
-        adjustlayer = context.scene.sequence_editor.active_strip
-        # adjustlayer.use_translation = True
-        adjustlayer.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "adjust")
-
-        effect.EffectStrips.add().value = glowlayer.name
-        effect.EffectStrips.add().value = adjustlayer.name
-
-        cls.leaveFirstLayer(data)
+        cls.leaveEditMode(data)
         return
 
     @classmethod
-    def draw(cls, context, layout, data, effect, firstlayer):
-        glowlayer = firstlayer.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "glow"))
+    def draw(cls, context, layout, data, effect, richstrip):
+        glowlayer = cls.getEffectStrip(richstrip, "glow")
 
         layout.label(text="Glow:")
         layout.prop(glowlayer, "threshold", text="Threshold")

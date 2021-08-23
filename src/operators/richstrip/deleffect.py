@@ -23,7 +23,8 @@ class ICETB_OT_RichStrip_Delete(bpy.types.Operator):
         if effectName in ICETB_EFFECTS_NAMES:
             cls = ICETB_EFFECTS_DICTS[effectName]
             cureffectIdx = data.EffectsCurrent
-            seqs, _, _ = cls.enterFistLayer(richstrip)
+            cls.enterEditMode(richstrip)
+            seqs = richstrip.sequences
 
             adjseq = seqs.get(effect.EffectStrips[-1].value)
             crossadjseq = seqs.get(data.Effects[cureffectIdx-1].EffectStrips[-1].value)
@@ -49,7 +50,7 @@ class ICETB_OT_RichStrip_Delete(bpy.types.Operator):
             data.EffectCurrentMaxChannel1 -= channeloffset
 
             # cls.delete(context, richstrip, data, effect)
-            cls.leaveFirstLayer(data)
+            cls.leaveEditMode(data)
             bpy.ops.sequencer.refresh_all()
 
         else:

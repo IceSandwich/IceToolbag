@@ -1,4 +1,4 @@
-import bpy
+import bpy, re
 from ..datas.richstrip import RichStripData
 
 class ICETB_UL_RichStripEffects_EffectListUI(bpy.types.UIList):
@@ -25,6 +25,12 @@ class ICETB_PT_RichStripEffects(bpy.types.Panel):
 
         obj = context.selected_sequences[0]
         data = obj.IceTB_richstrip_data
+
+        if not data.ForceNoDuplicateTip and re.compile(".*?\\.[0-9]{1,3}$").match(obj.name):
+            layout.label(text="Do you duplicated a strip? We need to rebuild it.")
+            layout.operator("icetb.richstrip_rebuild", text="Yes, i have duplicated this strip.")
+            return
+
         # layout.label(text= "Name: " + obj.name)
 
         row = layout.row()

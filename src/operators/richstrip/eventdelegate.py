@@ -16,6 +16,8 @@ class ICETB_OT_RichStrip_EventDelegate(bpy.types.Operator):
         return True
 
     def execute(self, context):
+        if len(context.selected_sequences) < 1: # i don't know why
+            return {'FINISHED'}
         if self.effectName in ICETB_EFFECTS_NAMES:
             ICETB_EFFECTS_DICTS[self.effectName]._update(self.eventType, self.eventIdentify, context)
         else:

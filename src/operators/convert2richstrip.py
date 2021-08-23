@@ -48,6 +48,7 @@ class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
         self.frame_end = self.movie.frame_final_end
         if self.audio is not None:
             self.frame_end = self.audio.frame_final_end
+            self.audio_duration = self.audio.frame_final_duration
         self.movie_name = self.movie.name
 
         self.movie.use_proxy = False # we must read fps when not using proxy, otherwise we got 0
@@ -62,6 +63,8 @@ class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
         # i don't know why the fps of blender will change automatically. we need to recover them.
         context.scene.render.fps = self.scene_fps
         context.scene.render.fps_base = self.scene_fps_base
+        # if self.audio is not None:
+        #     self.audio.frame_final_duration = self.audio_duration
 
     def build_richstrip(self, context):
         bpy.ops.sequencer.meta_make()
@@ -75,8 +78,8 @@ class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
         self.movie.transform.rotation = 0
         self.movie.transform.offset_x = self.movie.transform.offset_y = 0
         # self.movie['fps'] = self.movie_fps
-        self.movie['width'] = self.movie.elements[0].orig_width
-        self.movie['height'] = self.movie.elements[0].orig_height
+        # self.movie['width'] = self.movie.elements[0].orig_width
+        # self.movie['height'] = self.movie.elements[0].orig_height
         if self.audio is not None:
             self.audio.channel = 1
             self.audio.select = True
@@ -124,11 +127,3 @@ class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
         
         self.recover_info(context)
         return {"FINISHED"}
-
-# obj['prop'] = Vector((0, 0, 0))
-# d = obj.driver_add("blend_alpha").driver
-# var = d.varibles.new()
-# var.targets[0].name = 'var'
-# var.targets[0].id = obj
-# var.targets[0].data_path = '["prop"]'
-# d.expression = 'var + 3.14'
