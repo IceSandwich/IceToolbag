@@ -67,7 +67,7 @@ class EffectRamp(EffectBase):
         return
 
     @classmethod
-    def relink(cls, context):
+    def relink(cls, context, richstrip, effect):
         return
 
     @classmethod

@@ -26,9 +26,10 @@ class EffectBase():
         instance.__dict__["richstrip"] = richstrip
         instance.__dict__["effect"] = effect
         instance.__dict__["data"] = data
+        instance.__dict__["context"] = context
         instance.stage_Before()
         instance.stage_PropertyDefination()
-        instance.stage_SequenceDefination()
+        instance.stage_SequenceDefination(relinkStage=False)
         instance.stage_BinderDefination()
 
         cls.leaveEditMode(data)
@@ -36,10 +37,10 @@ class EffectBase():
         return
 
     def stage_Before(self):
-        richstrip.sequences.get(data.Effects[-2].EffectStrips[-1].value).select = True
+        self.richstrip.sequences.get(self.data.Effects[-2].EffectStrips[-1].value).select = True
     def stage_PropertyDefination(self):
         return
-    def stage_SequenceDefination(self):
+    def stage_SequenceDefination(self, relinkStage):
         return
     def stage_BinderDefination(self):
         return
@@ -79,9 +80,12 @@ class EffectBase():
     def _relink(cls, context, richstrip, suffix, index, oldrsid):
         effect = richstrip.IceTB_richstrip_data.Effects[index]
         oldrsid_len = len("rs%d-"%oldrsid)
-        newrsid = "rs%d-"%richstrip.RichStripID
+        newrsid = "rs%d-"%richstrip.IceTB_richstrip_data.RichStripID
+
         for stripName in effect.EffectStrips:
-            richstrip.sequences.get(stripName).name = newrsid + stripName[oldrsid_len:]
+            newName = newrsid + stripName.value[oldrsid_len:]
+            richstrip.sequences.get(stripName.value+suffix).name = newName
+            stripName.value = newName
         cls.relink(context, richstrip, effect)
 
     @classmethod
@@ -90,6 +94,9 @@ class EffectBase():
         instance = object.__new__(cls)
         instance.__dict__["richstrip"] = richstrip
         instance.__dict__["effect"] = effect
+        instance.__dict__["data"] = richstrip.IceTB_richstrip_data
+        instance.__dict__["context"] = context
+        instance.stage_SequenceDefination(relinkStage=True)
         instance.stage_BinderDefination()
         return    
 
@@ -147,13 +154,22 @@ class EffectBase():
 
     @classmethod
     def addBuiltinEffectStrip(cls, context, richstrip, rseffect, effectType, effectName):
+        """
+            return exists strip if already created.
+        """
         data = richstrip.IceTB_richstrip_data
+        stripName = cls.genRegularStripName(data.RichStripID, rseffect.EffectId, effectName)
+        seq = richstrip.sequences.get(stripName)
+        if seq is not None:
+            return seq
         data.EffectCurrentMaxChannel1 += 1
         bpy.ops.sequencer.effect_strip_add(type=effectType, frame_start=richstrip.frame_final_start, frame_end=richstrip.frame_final_end, channel=data.EffectCurrentMaxChannel1)
         effectlayer = context.scene.sequence_editor.active_strip
-        effectlayer.name = cls.genRegularStripName(data.RichStripID, rseffect.EffectId, effectName)
+        effectlayer.name = stripName
         rseffect.EffectStrips.add().value = effectlayer.name
         return effectlayer
+    def addBuiltinStrip(self, effectType, effectName):
+        return self.addBuiltinEffectStrip(self.context, self.richstrip, self.effect, effectType, effectName)
 
 
 
@@ -182,6 +198,21 @@ class EffectBase():
         cls.addBaseProperty(effect, "Int", effect.EffectIntProperties, intName, intDefault)
 
     @classmethod
+    def addPropertyWithDriver(cls, context, targetSeq, targetPropName, driverVars, dirverExpression):
+        driver = targetSeq.driver_add(targetPropName).driver
+        for driverVar in driverVars:
+            var = driver.variables.new()
+            var.name = driverVar["name"]
+            var.targets[0].id_type = 'SCENE'
+            var.targets[0].id = context.scene
+            if 'globalProp' in driverVar:
+                var.targets[0].data_path = driverVar["globalProp"]
+            else:
+                var.targets[0].data_path = 'sequence_editor.sequences_all["%s"]%s%s%s'%(driverVar["seqName"], '["' if driverVar["isCustomProp"] else '.', driverVar["seqProp"], '"]' if driverVar["isCustomProp"] else "")
+        driver.use_self = True
+        driver.expression = dirverExpression
+        
+    @classmethod
     def addPropertyWithBinding(cls, context, targetSeq, targetPropName, binderName, binderVars, binderExpression, storedSeq=None, numRange=(-100000, 100000), defaultValue=0, description=""):
         """ Example
         targetSeq(seq): rs1-movie
@@ -198,8 +229,9 @@ class EffectBase():
             targetSeq = getattr(targetSeq, x)
         targetPropName = propParts[-1]
 
-        # create binder(custom property)
-        storedSeq[binderName] = defaultValue
+        # create binder(custom property) if doesn't exist
+        if storedSeq.get(binderName) is None:
+            storedSeq[binderName] = defaultValue
         # TODO: the following command will popup a windows which we don't want. How to fix it? Just wanna set description and number range.
         # bpy.ops.wm.properties_edit("INVOKE_DEFAULT", data_path='scene.sequence_editor.sequences_all["%s"]'%storedSeq.name, property=binderName, value=str(defaultValue), default=str(defaultValue), min=numRange[0], max=numRange[1], is_overridable_library=True, description=description, subtype="NONE")
         

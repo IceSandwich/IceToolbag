@@ -18,6 +18,10 @@ class EffectGlow(EffectBase):
         return
 
     @classmethod
+    def relink(cls, context, richstrip, effect):
+        return
+
+    @classmethod
     def draw(cls, context, layout, data, effect, richstrip):
         glowlayer = cls.getEffectStrip(richstrip, "glow")
 

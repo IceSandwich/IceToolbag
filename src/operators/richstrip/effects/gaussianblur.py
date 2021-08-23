@@ -11,25 +11,24 @@ class EffectGaussianBlur(EffectBase):
     def getName(cls):
         return "GaussianBlur"
 
-    @classmethod
-    def add(cls, context, richstrip, data, effect):
-        cls.enterEditMode(richstrip)
+    def stage_PropertyDefination(self):
+        self.addBoolProperty(self.effect, "union_size_lock", False)
 
-        richstrip.sequences.get(data.Effects[-2].EffectStrips[-1].value).select = True
-        blurlayer = cls.addBuiltinEffectStrip(context, richstrip, effect, 'GAUSSIAN_BLUR', "blur")
-        adjustlayer = cls.addBuiltinEffectStrip(context, richstrip, effect, 'ADJUSTMENT', "adjust")
+    def stage_SequenceDefination(self, relinkStage):
+        if relinkStage:
+            self.blurlayer = self.getEffectStrip(self.richstrip, "blur")
+            return
+        self.blurlayer = self.addBuiltinStrip('GAUSSIAN_BLUR', "blur")
+        self.addBuiltinStrip('ADJUSTMENT', "adjust")
 
-        cls.addBoolProperty(effect, "union_size_lock", False)
-
-        cls.addPropertyWithBinding(context, blurlayer, "size_y", cls.genbinderName(effect, "size_y"), [{
+    def stage_BinderDefination(self):
+        self.addPropertyWithBinding(self.context, self.blurlayer, "size_y", self.genbinderName(self.effect, "size_y"), [{
             "name": "lock",
-            "seqName": richstrip.name,
-            "seqProp": cls.genseqProp(effect, "Bool", "union_size_lock"),
+            "seqName": self.richstrip.name,
+            "seqProp": self.genseqProp(self.effect, "Bool", "union_size_lock"),
             "isCustomProp": False
         }], "self.size_x if lock == 1 else bind")
 
-        cls.leaveEditMode(data)
-        return
 
     @classmethod
     def draw(cls, context, layout, data, effect, richstrip):

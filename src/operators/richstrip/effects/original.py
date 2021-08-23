@@ -16,65 +16,62 @@ class EffectOriginal(EffectBase):
     def getName(cls):
         return "Original"
 
-    @classmethod
-    def add(cls, context, richstrip, data, effect):
-        cls.enterEditMode(richstrip)
+    def stage_Before(self):
+        self.richstrip.sequences.get("rs%d-fixfps"%self.data.RichStripID).select = True
 
-        richstrip.sequences.get("rs%d-fixfps"%data.RichStripID).select = True
-        adjustlayer = cls.addBuiltinEffectStrip(context, richstrip, effect, 'TRANSFORM', 'adjust')
-        
-        cls.addEnumProperty(effect, "transform_type", ["Scale to Fit", "Scale to Fill", "Stretch to Fill", "Original"])
-        cls.addFloatProperty(effect, "scale_x", 1) # float 0
-        cls.addFloatProperty(effect, "scale_y", 1) # float 1
-        cls.addBoolProperty(effect, "union_scale_lock", False)
+    def stage_PropertyDefination(self):
+        self.addEnumProperty(self.effect, "transform_type", ["Scale to Fit", "Scale to Fill", "Stretch to Fill", "Original"])
+        self.addFloatProperty(self.effect, "scale_x", 1) # float 0
+        self.addFloatProperty(self.effect, "scale_y", 1) # float 1
+        self.addBoolProperty(self.effect, "union_scale_lock", False)
 
-        movie = cls.getMovieStrip(richstrip)
+    def stage_SequenceDefination(self, relinkStage):
+        self.addBuiltinStrip('TRANSFORM', 'adjust')
 
-        cls.addPropertyWithBinding(context, movie, "transform.offset_x", cls.genbinderName(effect, "pos_x"), [{
+    def stage_BinderDefination(self):
+        movie = self.getMovieStrip(self.richstrip)
+
+        self.addPropertyWithBinding(self.context, movie, "transform.offset_x", self.genbinderName(self.effect, "pos_x"), [{
             "name": "flip",
             "seqName": movie.name,
             "seqProp": "use_flip_x",
             "isCustomProp": False
         }], "bind * (-1 if flip == 1 else 1)", description="Offset X of movie")
 
-        cls.addPropertyWithBinding(context, movie, "transform.offset_y", cls.genbinderName(effect, "pos_y"), [{
+        self.addPropertyWithBinding(self.context, movie, "transform.offset_y", self.genbinderName(self.effect, "pos_y"), [{
             "name": "flip",
             "seqName": movie.name,
             "seqProp": "use_flip_y",
             "isCustomProp": False
         }], "bind * (-1 if flip == 1 else 1)", description="Offset Y of movie")
 
-        cls.addPropertyWithBinding(context, movie, "transform.scale_x", cls.genbinderName(effect, "scale_x"), [{
+        self.addPropertyWithBinding(self.context, movie, "transform.scale_x", self.genbinderName(self.effect, "scale_x"), [{
             "name": "scale",
-            "seqName": richstrip.name,
-            "seqProp": cls.genseqProp(effect, "Float", "scale_x"),
+            "seqName": self.richstrip.name,
+            "seqProp": self.genseqProp(self.effect, "Float", "scale_x"),
             "isCustomProp": False
         }], 'bind * scale', defaultValue=1.0)
 
-        cls.addPropertyWithBinding(context, movie, "transform.scale_y", cls.genbinderName(effect, "scale_y"), [{
+        self.addPropertyWithBinding(self.context, movie, "transform.scale_y", self.genbinderName(self.effect, "scale_y"), [{
             "name": "scale",
-            "seqName": richstrip.name,
-            "seqProp": cls.genseqProp(effect, "Float", "scale_y"),
+            "seqName": self.richstrip.name,
+            "seqProp": self.genseqProp(self.effect, "Float", "scale_y"),
             "isCustomProp": False
         }, {
             "name": "lock",
-            "seqName": richstrip.name,
-            "seqProp": cls.genseqProp(effect, "Bool", "union_scale_lock"),
+            "seqName": self.richstrip.name,
+            "seqProp": self.genseqProp(self.effect, "Bool", "union_scale_lock"),
             "isCustomProp": False
         }, {
             "name": "bindX",
             "seqName": movie.name,
-            "seqProp": cls.genbinderName(effect, "scale_x"),
+            "seqProp": self.genbinderName(self.effect, "scale_x"),
             "isCustomProp": True
         }], '(bindX if lock == 1 else bind) * scale', defaultValue=1.0)
 
-        cls.leaveEditMode(data)
+    def stage_After(self):
+        self._update("ENUM", "transform_type", self.context) # set transform_type to first one
 
-        cls._update("ENUM", "transform_type", context) # set transform_type to first one
-        return
-
-    @classmethod
-    def relink()
 
     @classmethod
     def draw(cls, context, layout, data, effect, richstrip):
