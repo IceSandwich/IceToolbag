@@ -1,5 +1,4 @@
-import bpy
-import os
+import bpy, os
 from .base import EffectBase
 
 class EffectMirror(EffectBase):
@@ -31,7 +30,8 @@ class EffectMirror(EffectBase):
 
         color.channel = 1
         color.select = True
-        dirpath = os.path.dirname(os.path.abspath(os.path.join("resources", "blackwhite.jpg"))) + "\\"
+        
+        dirpath = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "..", "..", "..", "resources", "")
         bpy.ops.sequencer.image_strip_add(directory=dirpath, files=[{"name":"blackwhite.jpg", "name":"blackwhite.jpg"}], frame_start=richstrip.frame_final_start, frame_end=richstrip.frame_final_end, channel=2, fit_method='STRETCH', set_view_transform=False)
         imgstrip = context.scene.sequence_editor.active_strip
         imgstrip.name = cls.genRegularStripName(data.RichStripID, effect.EffectId, "img")

@@ -1,11 +1,13 @@
 # IceToolbag
 A blender addon for VSE.
 
-Like its name, this toolbag should contain lots of things.
+Like its name, this toolbag should contain lots of things but not now.
+
+This addon is made for private use. I'm glad if it can help you.
 
 ## Notice :bell:
 
-**This addon is still in develop. Current version: 0.0.1 alpha**
+**This addon is still in develop. Some feature may not work properly. Current version: 0.0.1 alpha**
 
 ## Features :flags:
 
@@ -22,7 +24,7 @@ Like its name, this toolbag should contain lots of things.
 
 - Effects (:key: animation support, :hammer_and_wrench:developing, :x: outdated )
 
-  RichStrip is a template-base system which allows you to stack effects easily. All parameters are exposed so user can adjust them in one panel.
+  RichStrip is a template-base system which allows you to stack effects easily. All parameters are exposed so user can adjust them in one panel. This system is extensible. You can write your own effects.
 
 | Features            | Description                                                  | Demo               |
 | ------------------- | ------------------------------------------------------------ | ------------------ |
@@ -33,7 +35,7 @@ Like its name, this toolbag should contain lots of things.
 | Copy Effect :x: | ~~Must select an effect you want to copy before adding this effect.~~(**OUTDATED**) | ![](doc/copy.gif) |
 | Matte Effect :hammer_and_wrench: | Simple matte effect. **Still in progress.**                  | ![](doc/matte.gif) |
 | Pixelize Effect :key: | Mosaic effect.                                               | ![](doc/other.gif) |
-| Mirror Effect :key: :hammer_and_wrench: | Reflection effect. **Still in progress.** | |
+| Mirror Effect :key: :hammer_and_wrench: | Reflection effect. **Still in progress. Doesn't work properly.** | |
 |Bright/Contrast Effect :key:|Adjust the bright and contrast.||
 | Glow Effect :key: | Blender internal effect. |                    |
 |Gaussian Blur Effect :key:|Blender internal effect.||
@@ -45,17 +47,18 @@ Like its name, this toolbag should contain lots of things.
 - effects should has clip property and can interactive in viewport.
 - develop Slider Strip, Subtitle Strip, etc.
 - draw basic shape in viewport.
+- add common sticker, maybe a sticker library.
 
 ## Known Issues :bug:
 
-- when dragging the value, it seems blender costs lots of memory. (due to cache manager of blender)
+- when dragging the value, it seems blender costs lots of memory due to cache manager of blender.
 
 
 ## Changelog :bookmark_tabs:
 0.0.1 alpha
-1. support insert keyframes for properties which are able to add drivers
-2. now can duplicate richstrip, so get rid of copy effect
-3. update some api of base effect class, so everyone can write his own effect
+1. support keyframes animation for most properties.
+2. get rid of copy effect since we can duplicate richstrip.
+3. update some api of base effect class, so everyone can write his own effect.
 
 ## Last things...  :blush:
 

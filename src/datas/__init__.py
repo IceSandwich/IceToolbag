@@ -10,6 +10,7 @@ from .bool_prop import BoolProperty
 from .richstrip import RichStripData
 from .richstrip import RichStripEffect, RichStripColorEffect
 
+
 ICETB_DATAS_CLASSES = [ 
     StringProperty,
     IntProperty,

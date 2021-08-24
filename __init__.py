@@ -11,20 +11,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import bpy
+import bpy, os
 from .src import *
 from bpy.app.handlers import persistent
 
 bl_info = {
     "name" : "IceToolbag",
     "author" : "IceSandwich",
-    "description" : "",
+    "description" : "A blender addon for VSE, made for private use.",
     "blender" : (2, 93, 0),
     "version" : (0, 0, 1),
-    "location" : "",
-    "warning" : "",
+    "location" : "Sequencer Editor",
+    "warning" : "This addon is still in develop. Use at your own risk.",
     "category" : "Sequencer",
-    "wiki_url" : "https://github.com/IceSandwich/IceToolbag"
+    "wiki_url" : "https://github.com/IceSandwich/IceToolbag",
+    "tracker_url":  "https://github.com/IceSandwich/IceToolbag/issues"
 }
 
 classes = ICETB_CLASSES
