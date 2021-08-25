@@ -54,6 +54,9 @@ class ICETB_OT_ConvertToGalleryStrip(bpy.types.Operator):
 
         meta_strip["scale_x"] = 1.0
         meta_strip["scale_y"] = 1.0
+        # TODO: scale can be randomized by exporession maybe?
+        # https://blender.stackexchange.com/questions/7758/how-can-i-get-a-random-number-that-is-constant-per-object-in-a-driver
+        # TODO: add step animation to controller, user can decide the delay time.
         meta_strip["controller"] = 0.0
 
         return meta_strip
