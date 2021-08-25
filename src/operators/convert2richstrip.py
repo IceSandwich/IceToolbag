@@ -1,7 +1,7 @@
 import bpy
 import time
-import uuid
 from ..datas.richstrip import RichStripData
+from ..datas.gallerystrip import GalleryStripData
 
 class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
     bl_idname = "icetb.convert_to_richstrip"
@@ -25,8 +25,8 @@ class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
                     return False
                 else:
                     if seq.type == 'META':
-                        if not RichStripData.checkProperty(context, seq):
-                            self.report({'ERROR'}, "Selected meta strip isn't a valid rich strip.")
+                        if not RichStripData.checkProperty(context, seq) and not GalleryStripData.checkProperty(context, seq):
+                            self.report({'ERROR'}, "Selected meta strip isn't a valid rich/gallery strip.")
                             return False
                     self.movie = seq
             elif seq.type == 'SOUND':
@@ -51,13 +51,14 @@ class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
             self.audio_duration = self.audio.frame_final_duration
         self.movie_name = self.movie.name
 
-        self.movie.use_proxy = False # we must read fps when not using proxy, otherwise we got 0
-        bpy.ops.sequencer.refresh_all() # blender 2.9 will automatically build proxy, so we need refresh all
-        self.movie_fps = self.movie.fps
-        self.movie.use_proxy = True
-
         # read scene fps, because the fps of scene will change automatically. i don't know why.
         self.scene_fps, self.scene_fps_base = context.scene.render.fps, context.scene.render.fps_base
+
+        self.movie.use_proxy = False # we must read fps when not using proxy, otherwise we got 0
+        bpy.ops.sequencer.refresh_all() # blender 2.9 will automatically build proxy, so we need refresh all
+        self.movie_fps = self.movie.fps if hasattr(self.movie, "fps") else self.scene_fps
+        self.movie.use_proxy = True
+
 
     def recover_info(self, context):
         # i don't know why the fps of blender will change automatically. we need to recover them.
@@ -123,7 +124,7 @@ class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
         self.rsid = RichStripData.genRichStripId(context)
         meta_strip = self.build_richstrip(context)
 
-        RichStripData.initProperty(meta_strip, self.rsid, self.movie, self.audio)
+        RichStripData.initProperty(context, meta_strip, self.rsid, self.movie, self.audio)
         
         self.recover_info(context)
         return {"FINISHED"}

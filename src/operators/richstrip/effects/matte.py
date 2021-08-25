@@ -20,6 +20,7 @@ class EffectMatte(EffectBase):
         return "Matte"
 
     def stage_PropertyDefination(self):
+        self.addColorProperty(self.effect, "color", (0, 1, 0))
         self.addFloatProperty(self.effect, "foreground", 1)
         self.addFloatProperty(self.effect, "background", 0)
         self.addFloatProperty(self.effect, "blackclip", 0)
@@ -31,14 +32,17 @@ class EffectMatte(EffectBase):
 
     def stage_SequenceDefination(self, relinkStage):
         if relinkStage:
-            self.adjustlayer = self.getEffectStrip(self.richstrip, self.effect, "adjust")
+            self.adjustlayer = self.getEffectStrip(self.richstrip, self.effect, "blur")
             return
 
-        self.adjustlayer = self.addBuiltinStrip('GAUSSIAN_BLUR', "adjust")
+        self.adjustlayer = self.addBuiltinStrip('GAUSSIAN_BLUR', "blur")
         self.adjustlayer.size_x = self.adjustlayer.size_y = 10
 
         self.richstrip.sequences.get(self.data.Effects[-2].EffectStrips[-1].value).select = True
         self.translayer = self.addBuiltinStrip('TRANSFORM', "transf")
+
+        self.addBuiltinStrip('ADJUSTMENT', "adjust")
+
 
         # green band
         bandWidth = 1.0/6
@@ -102,9 +106,11 @@ class EffectMatte(EffectBase):
     @classmethod
     def draw(cls, context, layout, data, effect, richstrip):
         transflayer = cls.getEffectStrip(richstrip, effect, "transf")
-        adjustlayer = cls.getEffectStrip(richstrip, effect, "adjust")
+        adjustlayer = cls.getEffectStrip(richstrip, effect, "blur")
 
         layout.prop(transflayer, "mute", toggle=0, text="Only Matte")
+
+        layout.prop(cls.getColorProperty(effect, "color"), "value", text="Screen Color")
 
         layout.prop(cls.getFloatProperty(effect, "foreground"), "value", text="Foreground")
         layout.prop(cls.getFloatProperty(effect, "background"), "value", text="Background")
@@ -122,7 +128,7 @@ class EffectMatte(EffectBase):
     @classmethod
     def update(cls, type, identify, context, data, effect, richstrip):
         if type == 'FLOAT':
-            adjustlayer = cls.getEffectStrip(richstrip, effect, "adjust")
+            adjustlayer = cls.getEffectStrip(richstrip, effect, "blur")
             transflayer = cls.getEffectStrip(richstrip, effect, "transf")
 
             fg = cls.getFloatProperty(effect, "foreground").value

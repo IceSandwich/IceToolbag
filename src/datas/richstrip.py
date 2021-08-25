@@ -4,6 +4,7 @@ from ..datas.int_prop import IntProperty
 from ..datas.enum_prop import EnumProperty
 from ..datas.float_prop import FloatProperty
 from ..datas.bool_prop import BoolProperty
+from ..datas.color_prop import ColorProperty
 
 class RichStripColorEffect(bpy.types.PropertyGroup):
     EffectName: bpy.props.StringProperty(name="The name of effect", default="Untitled effect")
@@ -46,7 +47,8 @@ class RichStripEffect(bpy.types.PropertyGroup):
     EffectFloatProperties: bpy.props.CollectionProperty(type=FloatProperty)
     EffectEnumProperties: bpy.props.CollectionProperty(type=EnumProperty)
     EffectBoolProperties: bpy.props.CollectionProperty(type=BoolProperty)
-    EffectMappingJson: bpy.props.StringProperty(name="Mapping property name to index", default='{"Str":{},"Int":{},"Float":{},"Enum":{},"Bool":{}}')
+    EffectColorProperties: bpy.props.CollectionProperty(type=ColorProperty)
+    EffectMappingJson: bpy.props.StringProperty(name="Mapping property name to index", default='{"Str":{},"Int":{},"Float":{},"Enum":{},"Bool":{}, "Color":{}}')
 
 class RichStripData(bpy.types.PropertyGroup):
     # RichStrip information
@@ -90,7 +92,7 @@ class RichStripData(bpy.types.PropertyGroup):
             print("Property richstrip uninstalled")
 
     @classmethod
-    def initProperty(cls, richstrip, rsid, moviestrip, audiostrip=None):
+    def initProperty(cls, context, richstrip, rsid, moviestrip, audiostrip=None):
         if richstrip.type != 'META':
             # wrong sequence type
             # TODO: add more vaildate
@@ -105,9 +107,14 @@ class RichStripData(bpy.types.PropertyGroup):
         else:
             richstrip.IceTB_richstrip_data.HasAudio = True
 
-        richstrip.IceTB_richstrip_data.ResolutionWidth = moviestrip.elements[0].orig_width
-        richstrip.IceTB_richstrip_data.ResolutionHeight = moviestrip.elements[0].orig_height
-        richstrip.IceTB_richstrip_data.Fps = moviestrip.fps
+        if moviestrip.type == 'META':
+            richstrip.IceTB_richstrip_data.ResolutionWidth = context.scene.render.resolution_x
+            richstrip.IceTB_richstrip_data.ResolutionHeight = context.scene.render.resolution_y
+            richstrip.IceTB_richstrip_data.Fps = context.scene.render.fps
+        else:
+            richstrip.IceTB_richstrip_data.ResolutionWidth = moviestrip.elements[0].orig_width
+            richstrip.IceTB_richstrip_data.ResolutionHeight = moviestrip.elements[0].orig_height
+            richstrip.IceTB_richstrip_data.Fps = moviestrip.fps
 
         richstrip.IceTB_richstrip_data.Effects.clear()
         richstrip.IceTB_richstrip_data.EffectsCurrent = 0

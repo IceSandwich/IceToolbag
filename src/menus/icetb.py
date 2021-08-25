@@ -36,4 +36,5 @@ class ICETB_MT_Main(bpy.types.Menu):
         layout.separator()
         layout.menu("ICETB_MT_MARKER")
         layout.operator('icetb.convert_to_richstrip')
+        layout.operator('icetb.convert_to_gallerystrip')
         layout.prop(context.scene, "IceTB_richstrip_automatic_viewport_update")

@@ -180,7 +180,7 @@ class EffectBase():
     @classmethod
     def addBaseProperty(cls, effect, propType, propInstance, propName, propValue):
         ret = propInstance.add()
-        ret.initForEffect(cls.getName(), propName, propValue)
+        ret.initForEffect("RichStrip", cls.getName(), propName, propValue)
         mapping = json.loads(effect.EffectMappingJson)
         mapping[propType][propName] = len(propInstance)-1
         effect.EffectMappingJson = json.dumps(mapping)
@@ -258,6 +258,9 @@ class EffectBase():
     def addFloatProperty(cls, effect, floatName, floatDefault=0.0):
         cls.addBaseProperty(effect, "Float", effect.EffectFloatProperties, floatName, floatDefault)
 
+    def addColorProperty(cls, effect, colorName, colorDefault=(0, 0, 0)):
+        cls.addBaseProperty(effect, "Color", effect.EffectColorProperties, colorName, colorDefault)
+
     @classmethod
     def addBoolProperty(cls, effect, boolName, boolDefault=False):
         cls.addBaseProperty(effect, "Bool", effect.EffectBoolProperties, boolName, boolDefault)
@@ -274,12 +277,12 @@ class EffectBase():
         """
             get custom property data_path in meta strip / movie strip ... etc
         """
-        # if withPropModifier:
-            # return '["%s/%s"]'%(effect.EffectName, name)
-        # return "%s/%s"%(effect.EffectName, name)
         if withPropModifier:
-            return '["%s"]'%name
-        return "%s"%name
+            return '["%s/%s"]'%(effect.EffectName, name)
+        return "%s/%s"%(effect.EffectName, name)
+        # if withPropModifier:
+        #     return '["%s"]'%name
+        # return "%s"%name
 
     @classmethod
     def genseqProp(cls, effect, propType, propName):
@@ -303,11 +306,11 @@ class EffectBase():
     @classmethod
     def getBaseProperty(cls, effect, propType, propName, retValue=True):
         """
-            propType: one of ['Bool', 'Enum', 'Float', 'Int']
+            propType: one of ['Bool', 'Enum', 'Float', 'Int', 'Color']
             propName: prop String name
             ret: return property value if retValue is True, otherwise only return the index of property
         """
-        assert(['Bool', 'Enum', 'Float', 'Int'].index(propType) != -1)
+        #assert(['Bool', 'Enum', 'Float', 'Int', 'Color'].index(propType) != -1)
         propInstance = getattr(effect, "Effect%sProperties"%propType)
         propindex = json.loads(effect.EffectMappingJson)[propType][propName]
         assert(propindex is not None)
@@ -330,3 +333,7 @@ class EffectBase():
     @classmethod
     def getBoolProperty(cls, effect, propName):
         return cls.getBaseProperty(effect, 'Bool', propName)
+
+    @classmethod
+    def getColorProperty(cls, effect, propName):
+        return cls.getBaseProperty(effect, 'Color', propName)

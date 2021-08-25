@@ -35,16 +35,17 @@ class EffectFastBlur(EffectBase):
         self.addBuiltinStrip('ADJUSTMENT', "adjust")
 
     def stage_BinderDefination(self):
-        self.addPropertyWithBinding(self.context, self.transsmlayer, "scale_start_x", "strongX", [], "1.0 / (bind+1e-6)", defaultValue=200.0)
-        self.addPropertyWithBinding(self.context, self.transsmlayer, "scale_start_y", "strongY", [], "1.0 / (bind+1e-6)", defaultValue=200.0)
+        self.addPropertyWithBinding(self.context, self.transsmlayer, "scale_start_x", self.genbinderName(self.effect, "strongX"), [], "1.0 / (bind+1e-6)", defaultValue=200.0)
+        self.addPropertyWithBinding(self.context, self.transsmlayer, "scale_start_y", self.genbinderName(self.effect, "strongY"), [], "1.0 / (bind+1e-6)", defaultValue=200.0)
 
-        self.addPropertyWithBinding(self.context, self.translglayer, "scale_start_x", "fixX", [{
+        fixXbinderName = self.genbinderName(self.effect, "fixX")
+        self.addPropertyWithBinding(self.context, self.translglayer, "scale_start_x", fixXbinderName, [{
             "name": "strong",
             "seqName": self.transsmlayer.name,
             "seqProp": self.genbinderName(self.effect, "strongX"),
             "isCustomProp": True
         }], 'strong * bind', defaultValue=1.3)
-        self.addPropertyWithBinding(self.context, self.translglayer, "scale_start_y", "fixY", [{
+        self.addPropertyWithBinding(self.context, self.translglayer, "scale_start_y", self.genbinderName(self.effect, "fixY"), [{
             "name": "strong",
             "seqName": self.transsmlayer.name,
             "seqProp": self.genbinderName(self.effect, "strongY"),
@@ -54,7 +55,7 @@ class EffectFastBlur(EffectBase):
             "seqName": self.richstrip.name,
             "seqProp": self.genseqProp(self.effect, "Bool", "union_fix_lock"),
             "isCustomProp": False
-        }], 'strong * (self["fixX"] if lock == 1 else bind)', defaultValue=1.3)
+        }], 'strong * (self["%s"] if lock == 1 else bind)'%fixXbinderName, defaultValue=1.3)
 
 
     @classmethod

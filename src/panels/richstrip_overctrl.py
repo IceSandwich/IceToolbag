@@ -31,9 +31,9 @@ class ICETB_PT_RichStripEffectCTL(bpy.types.Panel):
         data = richstrip.IceTB_richstrip_data
         effect = data.getSelectedEffect()
 
-        if effect.EffectType == "Original":
-            layout.label(text="This effect doesn't support after effect.")
-            return
+        # if effect.EffectType == "Original":
+        #     layout.label(text="This effect doesn't support after effect.")
+        #     return
 
         adjustlayer = richstrip.sequences.get(effect.EffectStrips[-1].value)
 

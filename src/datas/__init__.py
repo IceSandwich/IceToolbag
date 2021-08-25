@@ -6,9 +6,12 @@ from .int_prop import IntProperty
 from .float_prop import FloatProperty
 from .enum_prop import EnumProperty
 from .bool_prop import BoolProperty
+from .color_prop import ColorProperty
 
 from .richstrip import RichStripData
 from .richstrip import RichStripEffect, RichStripColorEffect
+
+from .gallerystrip import GalleryStripData, GalleryStripScaleVector
 
 
 ICETB_DATAS_CLASSES = [ 
@@ -17,10 +20,14 @@ ICETB_DATAS_CLASSES = [
     FloatProperty,
     EnumProperty,
     BoolProperty,
+    ColorProperty,
 
     RichStripColorEffect,
     RichStripEffect,
     RichStripData,
+
+    GalleryStripScaleVector,
+    GalleryStripData,
     
     MarkerLayer_OneMarker,
     MarkerLayer_OneLayer

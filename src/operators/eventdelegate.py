@@ -1,6 +1,6 @@
 import bpy
-from .effects import ICETB_EFFECTS_DICTS
-from .effects import ICETB_EFFECTS_NAMES
+from .richstrip.effects import ICETB_EFFECTS_DICTS
+from .richstrip.effects import ICETB_EFFECTS_NAMES
 
 class ICETB_OT_RichStrip_EventDelegate(bpy.types.Operator):
     bl_idname = "icetb.richstrip_eventdelegate"

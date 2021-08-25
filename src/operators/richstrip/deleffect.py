@@ -8,7 +8,10 @@ class ICETB_OT_RichStrip_Delete(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return True
+        data = context.selected_sequences[0].IceTB_richstrip_data
+        if len(data.Effects) -1 == data.EffectsCurrent:
+            return True
+        return False
 
     def execute(self, context):
         richstrip = context.selected_sequences[0]
