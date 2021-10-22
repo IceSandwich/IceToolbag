@@ -46,13 +46,13 @@ class EffectShadow(EffectBase):
         if self.blacklayer.get(offsetPropertyName) is None: self.blacklayer[offsetPropertyName] = 0
         if self.blacklayer.get(anglePropertyName) is None: self.blacklayer[anglePropertyName] = 0
 
-        self.addPropertyWithBinding(self.context, self.blacklayer, "transform.offset_x", offsetPropertyName, [{
+        self.addPropertyWithBinding(self.blacklayer, "transform.offset_x", "offset", [{
             "name": "angle",
             "seqName": self.blacklayer.name,
             "seqProp": anglePropertyName,
             "isCustomProp": True
         }], "cos(radians(angle))*bind")
-        self.addPropertyWithBinding(self.context, self.blacklayer, "transform.offset_y", offsetPropertyName, [{
+        self.addPropertyWithBinding(self.blacklayer, "transform.offset_y", "angle", [{
             "name": "angle",
             "seqName": self.blacklayer.name,
             "seqProp": anglePropertyName,
@@ -61,7 +61,7 @@ class EffectShadow(EffectBase):
 
         # self.addPropertyWithDriver(self.context, self.blacklayer.transform, "scale_y", [], "self.scale_x")
 
-        self.addPropertyWithBinding(self.context, self.blurlayer, "size_y", self.genbinderName(self.effect, "size_y"), [{
+        self.addPropertyWithBinding(self.blurlayer, "size_y", "size_y", [{
             "name": "lock",
             "seqName": self.richstrip.name,
             "seqProp": self.genseqProp(self.effect, "Bool", "union_size_lock"),

@@ -31,7 +31,6 @@ class ICETB_PT_GalleryStripEffects(bpy.types.Panel):
 
         # layout.label(text= "Name: " + obj.name)
 
-        layout.label(text="Hello world")
         layout.prop(data.StripsFitMethod, "value", text="Fit Method")
         layout.prop(data.ArrangementMethod, "value", text="Arrangement Method")
         layout.prop(data, "CanvasWidth", text="Width")
@@ -39,3 +38,5 @@ class ICETB_PT_GalleryStripEffects(bpy.types.Panel):
         layout.prop(obj, '["scale_x"]', text="Size X")
         layout.prop(obj, '["scale_y"]', text="Size Y")
         layout.prop(obj, '["controller"]', text="Controller")
+
+        # layout.button("Bake Driver")

@@ -29,7 +29,7 @@ stage_Before(optional):
     It's optional. You don't have to implement it if you want to apply new effect strip to latest effect strip.
 
 
-stage_PropertyDefination(requirement):
+stage_PropertyDefination(optional):
     Define properties using following functions:
         addColorProperty, addFloatProperty, addIntProperty, addBoolProperty, addEnumProperty
     All properties must have default value except for Enum.
@@ -75,8 +75,7 @@ stage_BinderDefination(requirement):
         binderExpression: python expression.
             e.g. `self.size_x`
         So far, combine them together:
-            self.addPropertyWithBinding(self.context, self.transform, "size_y", self.genbinderName(self.effect, "ExpBinder"), 
-                [], "self.size_x")
+            self.addPropertyWithBinding(self.transform, "size_y", "ExpBinder", [], "self.size_x")
 
     Advance. I want to keep ratio according to bool property defined in `stage_PropertyDefination`.
         binderVars: we need the bool property as input variable.
@@ -89,7 +88,7 @@ stage_BinderDefination(requirement):
         binderExpression: logical change.
             e.g. `self.size_x if lock == 1 else bind`   # as u see, 1 stands for True, 0 stands for False. use `bind` stands for `transform.size_y`.
         Combine them together:
-            self.addPropertyWithBinding(self.context, self.transform, "size_y", self.genbinderName(self.effect, "ExpBinder"), [{
+            self.addPropertyWithBinding(self.transform, "size_y", "ExpBinder", [{
                 "name": "lock",
                 "seqName": self.richstrip.name,
                 "seqProp": self.genseqProp(self.effect, "Bool", "lock"),
@@ -199,7 +198,10 @@ class EffectBase():
 
         for stripName in effect.EffectStrips:
             newName = newrsid + stripName.value[oldrsid_len:]
-            richstrip.sequences.get(stripName.value+suffix).name = newName
+            seq = richstrip.sequences.get(stripName.value+suffix)
+            if seq is None:
+                seq = context.scene.sequence_editor.sequences_all.get(stripName.value+suffix)
+            seq.name = newName
             stripName.value = newName
         cls.relink(context, richstrip, effect)
 
@@ -247,7 +249,11 @@ class EffectBase():
     @classmethod
     def getEffectStrip(cls, richstrip, effect, effectName):
         data = richstrip.IceTB_richstrip_data
-        return richstrip.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, effectName))
+        seqname = cls.genRegularStripName(data.RichStripID, effect.EffectId, effectName)
+        ret = richstrip.sequences.get(seqname)
+        if ret is None:
+            return bpy.context.scene.sequence_editor.sequences_all.get(seqname)
+        return ret
 
     @classmethod
     def getMovieStrip(cls, richstrip):
@@ -327,7 +333,7 @@ class EffectBase():
         driver.expression = dirverExpression
         
     @classmethod
-    def addPropertyWithBinding(cls, context, targetSeq, targetPropName, binderName, binderVars, binderExpression, storedSeq=None, numRange=(-100000, 100000), defaultValue=0, description=""):
+    def addPropertyWithBinding_ClassLevel(cls, context, targetSeq, targetPropName, binderName, binderVars, binderExpression, storedSeq=None, numRange=(-100000, 100000), defaultValue=0, description=""):
         """ Example
         targetSeq(seq): rs1-movie
         targetPropName(string): transform.pos_x
@@ -368,6 +374,9 @@ class EffectBase():
         var.targets[0].data_path = 'sequence_editor.sequences_all["%s"]["%s"]'%(storedSeq.name, binderName)
         driver.use_self = True
         driver.expression = binderExpression
+
+    def addPropertyWithBinding(self, targetSeq, targetPropName, binderName, binderVars, binderExpression, storedSeq=None, numRange=(-100000, 100000), defaultValue=0, description=""):
+        self.addPropertyWithBinding_ClassLevel(self.context, targetSeq, targetPropName, self.genbinderName(self.effect, binderName), binderVars, binderExpression, storedSeq=storedSeq, numRange=numRange, defaultValue=defaultValue, description=description)
 
     @classmethod
     def addFloatProperty(cls, effect, floatName, floatDefault=0.0):

@@ -31,28 +31,28 @@ class EffectOriginal(EffectBase):
     def stage_BinderDefination(self):
         movie = self.getMovieStrip(self.richstrip)
 
-        self.addPropertyWithBinding(self.context, movie, "transform.offset_x", self.genbinderName(self.effect, "pos_x"), [{
+        self.addPropertyWithBinding(movie, "transform.offset_x", "pos_x", [{
             "name": "flip",
             "seqName": movie.name,
             "seqProp": "use_flip_x",
             "isCustomProp": False
         }], "bind * (-1 if flip == 1 else 1)", description="Offset X of movie")
 
-        self.addPropertyWithBinding(self.context, movie, "transform.offset_y", self.genbinderName(self.effect, "pos_y"), [{
+        self.addPropertyWithBinding(movie, "transform.offset_y", "pos_y", [{
             "name": "flip",
             "seqName": movie.name,
             "seqProp": "use_flip_y",
             "isCustomProp": False
         }], "bind * (-1 if flip == 1 else 1)", description="Offset Y of movie")
 
-        self.addPropertyWithBinding(self.context, movie, "transform.scale_x", self.genbinderName(self.effect, "scale_x"), [{
+        self.addPropertyWithBinding(movie, "transform.scale_x", "scale_x", [{
             "name": "scale",
             "seqName": self.richstrip.name,
             "seqProp": self.genseqProp(self.effect, "Float", "scale_x"),
             "isCustomProp": False
         }], 'bind * scale', defaultValue=1.0)
 
-        self.addPropertyWithBinding(self.context, movie, "transform.scale_y", self.genbinderName(self.effect, "scale_y"), [{
+        self.addPropertyWithBinding(movie, "transform.scale_y", "scale_y", [{
             "name": "scale",
             "seqName": self.richstrip.name,
             "seqProp": self.genseqProp(self.effect, "Float", "scale_y"),

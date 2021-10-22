@@ -22,7 +22,7 @@ class EffectGaussianBlur(EffectBase):
         self.addBuiltinStrip('ADJUSTMENT', "adjust")
 
     def stage_BinderDefination(self):
-        self.addPropertyWithBinding(self.context, self.blurlayer, "size_y", self.genbinderName(self.effect, "size_y"), [{
+        self.addPropertyWithBinding(self.blurlayer, "size_y", "size_y", [{
             "name": "lock",
             "seqName": self.richstrip.name,
             "seqProp": self.genseqProp(self.effect, "Bool", "union_size_lock"),

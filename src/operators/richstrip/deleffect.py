@@ -32,14 +32,15 @@ class ICETB_OT_RichStrip_Delete(bpy.types.Operator):
             adjseq = seqs.get(effect.EffectStrips[-1].value)
             crossadjseq = seqs.get(data.Effects[cureffectIdx-1].EffectStrips[-1].value)
 
+            channeloffset = adjseq.channel - crossadjseq.channel
             # move all sequences above this effect
-            channeloffset = len(effect.EffectStrips)
-            for i in range(cureffectIdx + 1, len(data.Effects)):
-                for buildinseqName in data.Effects[i].EffectStrips:
-                    buildinseq = seqs.get(buildinseqName.value)
-                    buildinseq.channel -= channeloffset
-                    if 'input_1' in dir(buildinseq) and buildinseq.input_1 == adjseq:
-                        buildinseq.input_1 = crossadjseq
+            # channeloffset = len(effect.EffectStrips)
+            # for i in range(cureffectIdx + 1, len(data.Effects)):
+            #     for buildinseqName in data.Effects[i].EffectStrips:
+            #         buildinseq = seqs.get(buildinseqName.value)
+            #         buildinseq.channel -= channeloffset
+            #         if 'input_1' in dir(buildinseq) and buildinseq.input_1 == adjseq:
+            #             buildinseq.input_1 = crossadjseq
 
             # delete the sequences in this effect
             for buildinseqName in effect.EffectStrips:

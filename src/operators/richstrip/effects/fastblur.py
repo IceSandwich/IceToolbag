@@ -35,17 +35,17 @@ class EffectFastBlur(EffectBase):
         self.addBuiltinStrip('ADJUSTMENT', "adjust")
 
     def stage_BinderDefination(self):
-        self.addPropertyWithBinding(self.context, self.transsmlayer, "scale_start_x", self.genbinderName(self.effect, "strongX"), [], "1.0 / (bind+1e-6)", defaultValue=200.0)
-        self.addPropertyWithBinding(self.context, self.transsmlayer, "scale_start_y", self.genbinderName(self.effect, "strongY"), [], "1.0 / (bind+1e-6)", defaultValue=200.0)
+        self.addPropertyWithBinding(self.transsmlayer, "scale_start_x", "strongX", [], "1.0 / (bind+1e-6)", defaultValue=200.0)
+        self.addPropertyWithBinding(self.transsmlayer, "scale_start_y", "strongY", [], "1.0 / (bind+1e-6)", defaultValue=200.0)
 
         fixXbinderName = self.genbinderName(self.effect, "fixX")
-        self.addPropertyWithBinding(self.context, self.translglayer, "scale_start_x", fixXbinderName, [{
+        self.addPropertyWithBinding(self.translglayer, "scale_start_x", fixXbinderName, [{
             "name": "strong",
             "seqName": self.transsmlayer.name,
             "seqProp": self.genbinderName(self.effect, "strongX"),
             "isCustomProp": True
         }], 'strong * bind', defaultValue=1.3)
-        self.addPropertyWithBinding(self.context, self.translglayer, "scale_start_y", self.genbinderName(self.effect, "fixY"), [{
+        self.addPropertyWithBinding(self.translglayer, "scale_start_y", "fixY", [{
             "name": "strong",
             "seqName": self.transsmlayer.name,
             "seqProp": self.genbinderName(self.effect, "strongY"),
