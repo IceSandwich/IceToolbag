@@ -3,11 +3,11 @@ A blender addon for VSE.
 
 Like its name, this toolbag should contain lots of things but not now.
 
-This addon is made for private use. I'm glad if it can help you.
+This addon is made for personal use. I'm glad if it can help you.
 
 ## Notice :bell:
 
-**This addon is still in develop. Some feature may not work properly. Current version: 0.0.1 alpha**
+**This addon is still in develop and not ready for production. Some feature may not work properly. Current version: 0.0.2 alpha**
 
 ## Features :flags:
 
@@ -33,32 +33,64 @@ This addon is made for private use. I'm glad if it can help you.
 | FastBlur Effect​ :key: | Blender has Gaussian blur but pretty slow and not perfect when we want a blur background. This effect does a trick to blur the background. | ![](doc/fblur.gif) |
 | Ramp Effect :hammer_and_wrench: | Like ramp node in nuke but less control. **Still has some bugs about the formulation.** | ![](doc/ramp.gif)  |
 | Copy Effect :x: | ~~Must select an effect you want to copy before adding this effect.~~(**OUTDATED**) | ![](doc/copy.gif) |
-| Matte Effect :hammer_and_wrench: | Simple matte effect. **Still in progress.**                  | ![](doc/matte.gif) |
+| Matte Effect :hammer_and_wrench: | Simple matte effect. **Still in progress. Not work properly** | ![](doc/matte.gif) |
 | Pixelize Effect :key: | Mosaic effect.                                               | ![](doc/other.gif) |
-| Mirror Effect :key: :hammer_and_wrench: | Reflection effect. **Still in progress. Doesn't work properly.** | |
+| Shadow Effect :key: | Add shadow. | ![](doc/shadow.gif) |
+| Mirror Effect :key: :hammer_and_wrench: | Reflection effect. **Still in progress. ** | ![](doc/mirror.gif) |
 |Bright/Contrast Effect :key:|Adjust the bright and contrast.||
 | Glow Effect :key: | Blender internal effect. |                    |
 |Gaussian Blur Effect :key:|Blender internal effect.||
 
+- Gallery
+
+| Features                              | Description                                                  | Demo                 |
+| ------------------------------------- | ------------------------------------------------------------ | -------------------- |
+| Convert 2 Gallery Strip               | Select batch of images in one channel before converting them to gallery strip. | ![](doc/gallery.gif) |
+| Key Expression                        | (Not develop yet)                                            |                      |
+| Mix with Gallery strip and Rich strip | As demo.                                                     | ![](doc/richmix.gif) |
+
+
+
 ## TODO/Planning :chart_with_upwards_trend:
 
 - support move up and down the effect.
-- add more effects.
+- ~~add more effects.~~(**Need idea**)
 - effects should has clip property and can interactive in viewport.
-- develop Slider Strip, Subtitle Strip, etc.
+- develop ~~Slider Strip~~(Gallery Strip, achieved), Subtitle Strip(With FFmpeg), etc.
 - draw basic shape in viewport.
 - add common sticker, maybe a sticker library.
+- effect has mask, user can draw it directly in viewport.
+- gallery strip has expression to control all images at once.
 
 ## Known Issues :bug:
 
 - when dragging the value, it seems blender costs lots of memory due to cache manager of blender.
 
-
 ## Changelog :bookmark_tabs:
+
+---
+
 0.0.1 alpha
+
+---
+
 1. support keyframes animation for most properties.
 2. get rid of copy effect since we can duplicate richstrip.
 3. update some api of base effect class, so everyone can write his own effect.
+
+---
+
+0.0.2 alpha
+
+---
+
+1. gallery strip achieved.
+2. fix some bugs and add document for some class source code.
+3. add shadow effects and mirror effect.
+4. richstrip can be mixed with gallery strip.
+5. simplify some apis.
+
+
 
 ## Last things...  :blush:
 

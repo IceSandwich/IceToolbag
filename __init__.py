@@ -20,7 +20,7 @@ bl_info = {
     "author" : "IceSandwich",
     "description" : "A blender addon for VSE, made for private use.",
     "blender" : (2, 93, 0),
-    "version" : (0, 0, 1),
+    "version" : (0, 0, 2),
     "location" : "Sequencer Editor",
     "warning" : "This addon is still in develop. Use at your own risk.",
     "category" : "Sequencer",

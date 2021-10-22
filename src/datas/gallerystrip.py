@@ -71,7 +71,8 @@ class GalleryStripData(bpy.types.PropertyGroup):
             data.StripsFitMethod.items.add().value = x
 
         data.ArrangementMethod.initForEffect("GalleryStrip", "Global", "Arrangement", None)
-        for x in ["Horizontal", "Vertical", "Grid"]:
+        # for x in ["Horizontal", "Vertical", "Grid"]:
+        for x in ["Horizontal", "Vertical"]:
             data.ArrangementMethod.items.add().value = x
         data.ArrangementMethodInt = 0
 

@@ -46,16 +46,27 @@ class EffectShadow(EffectBase):
         if self.blacklayer.get(offsetPropertyName) is None: self.blacklayer[offsetPropertyName] = 0
         if self.blacklayer.get(anglePropertyName) is None: self.blacklayer[anglePropertyName] = 0
 
-        self.addPropertyWithBinding(self.blacklayer, "transform.offset_x", "offset", [{
+        self.addPropertyWithDriver(self.context, self.blacklayer.transform, "offset_x", [{
             "name": "angle",
             "seqName": self.blacklayer.name,
             "seqProp": anglePropertyName,
             "isCustomProp": True
+        }, {
+            "name": "bind",
+            "seqName": self.blacklayer.name,
+            "seqProp": offsetPropertyName,
+            "isCustomProp": True
         }], "cos(radians(angle))*bind")
-        self.addPropertyWithBinding(self.blacklayer, "transform.offset_y", "angle", [{
+
+        self.addPropertyWithDriver(self.context, self.blacklayer.transform, "offset_y", [{
             "name": "angle",
             "seqName": self.blacklayer.name,
             "seqProp": anglePropertyName,
+            "isCustomProp": True
+        }, {
+            "name": "bind",
+            "seqName": self.blacklayer.name,
+            "seqProp": offsetPropertyName,
             "isCustomProp": True
         }], "sin(radians(angle))*bind")
 
