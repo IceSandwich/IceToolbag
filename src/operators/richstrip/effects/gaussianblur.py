@@ -27,7 +27,7 @@ class EffectGaussianBlur(EffectBase):
             "seqName": self.richstrip.name,
             "seqProp": self.genseqProp(self.effect, "Bool", "union_size_lock"),
             "isCustomProp": False
-        }], "self.size_x if lock == 1 else bind")
+        }], "self.size_x if lock == 1 else bind", defaultValue=0.0)
 
 
     @classmethod

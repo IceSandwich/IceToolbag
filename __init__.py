@@ -18,7 +18,7 @@ from bpy.app.handlers import persistent
 bl_info = {
     "name" : "IceToolbag",
     "author" : "IceSandwich",
-    "description" : "A blender addon for VSE, made for private use.",
+    "description" : "A blender addon for VSE, made for personal use.",
     "blender" : (2, 93, 0),
     "version" : (0, 0, 2),
     "location" : "Sequencer Editor",

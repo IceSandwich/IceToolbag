@@ -4,6 +4,8 @@ from .widgets import xylock
 
 class EffectMatte(EffectBase):
     """
+        EffectColorProperties:
+            [0] Color
         EffectFloatProperties:
             [0] Foreground
             [1] Background

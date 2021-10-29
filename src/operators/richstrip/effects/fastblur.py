@@ -29,7 +29,7 @@ class EffectFastBlur(EffectBase):
 
         self.translglayer = self.addBuiltinStrip('TRANSFORM', "lg")
         self.translglayer.blend_type = 'REPLACE'
-        self.translglayer.use_uniform_scale = True
+        # self.translglayer.use_uniform_scale = True
         self.translglayer.interpolation = 'BICUBIC'
 
         self.addBuiltinStrip('ADJUSTMENT', "adjust")
@@ -39,7 +39,7 @@ class EffectFastBlur(EffectBase):
         self.addPropertyWithBinding(self.transsmlayer, "scale_start_y", "strongY", [], "1.0 / (bind+1e-6)", defaultValue=200.0)
 
         fixXbinderName = self.genbinderName(self.effect, "fixX")
-        self.addPropertyWithBinding(self.translglayer, "scale_start_x", fixXbinderName, [{
+        self.addPropertyWithBinding(self.translglayer, "scale_start_x", "fixX", [{
             "name": "strong",
             "seqName": self.transsmlayer.name,
             "seqProp": self.genbinderName(self.effect, "strongX"),

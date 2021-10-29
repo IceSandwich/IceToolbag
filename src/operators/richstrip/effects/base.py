@@ -16,7 +16,7 @@ import json
   │ original│  │fastblur│   │pixelize│  │...│
   └─────────┘  └────────┘   └────────┘  └───┘
 
-When you click add effect, EffectBase class will do the following process.
+When you click `add effect`, EffectBase class will do the following process. So you need to implement them.
 ┌──────────────┐    ┌──────────────────────────┐     ┌──────────────────────────┐   ┌────────────────────────┐    ┌─────────────┐
 │              │    │                          │     │                          │   │                        │    │             │
 │ stage_Before ├───►│ stage_PropertyDefination ├────►│ stage_SequenceDefination ├──►│ stage_BinderDefination ├───►│ stage_After │
