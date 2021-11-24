@@ -32,11 +32,11 @@ class ICETB_PT_RichStripEffect(bpy.types.Panel):
         # seleffecttype = data.getSelectedEffectType()
     
         layout.label(text="Type: " + seleffecttype)
-        if curidx == 0:
-            layout.label(text="Input: Disk Sequences")
-        elif seleffecttype == "Copy":
-            layout.label(text="Input: " + data.Effects[data.Effects[curidx].EffectInputId].EffectName)
-        else:
-            layout.label(text="Input: Last one")
+        # if curidx == 0:
+        #     layout.label(text="Input: Disk Sequences")
+        # elif seleffecttype == "Copy":
+        #     layout.label(text="Input: " + data.Effects[data.Effects[curidx].EffectInputId].EffectName)
+        # else:
+        #     layout.label(text="Input: Last one")
     
         ICETB_EFFECTS_DICTS[seleffecttype]._draw(context, layout)

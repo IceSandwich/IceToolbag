@@ -1,6 +1,6 @@
 import bpy
 from .base import EffectBase
-from .widgets import xylock
+from .widgets import xylock, exportbox, maskbox
 
 class EffectFastBlur(EffectBase):
     @classmethod
@@ -9,6 +9,16 @@ class EffectFastBlur(EffectBase):
 
     def stage_PropertyDefination(self):
         self.addBoolProperty(self.effect, "union_fix_lock", boolDefault=True)
+
+        self.addExportProperty(self.effect, [
+            ["strongX", "sm", "strongX", True ],
+            ["strongY", "sm", "strongY", True ],
+            ["mulstrong", "md", "scale_start_x", False ],
+            ["fixX", "lg", "fixX", True ],
+            ["fixY", "lg", "fixY", True ],
+            ["opacity", "lg", "blend_alpha", False ],
+            ["saturation", "lg", "color_saturation", False ],
+        ])
 
     def stage_SequenceDefination(self, relinkStage):
         if relinkStage:
@@ -25,12 +35,14 @@ class EffectFastBlur(EffectBase):
         transmdlayer.blend_type = 'ALPHA_UNDER'
         transmdlayer.use_uniform_scale = True
         transmdlayer.scale_start_x = 1.2
-        transmdlayer.interpolation = 'BILINEAR'
+        transmdlayer.interpolation = 'BICUBIC'
 
         self.translglayer = self.addBuiltinStrip('TRANSFORM', "lg")
         self.translglayer.blend_type = 'REPLACE'
         # self.translglayer.use_uniform_scale = True
         self.translglayer.interpolation = 'BICUBIC'
+        modifier = self.translglayer.modifiers.new(self.genRegularStripName(self.data.RichStripID, self.effect.EffectId, "mask"), 'MASK')
+        modifier.input_mask_type = 'ID'
 
         self.addBuiltinStrip('ADJUSTMENT', "adjust")
 
@@ -46,16 +58,26 @@ class EffectFastBlur(EffectBase):
             "isCustomProp": True
         }], 'strong * bind', defaultValue=1.3)
         self.addPropertyWithBinding(self.translglayer, "scale_start_y", "fixY", [{
-            "name": "strong",
+            "name": "strongX",
+            "seqName": self.transsmlayer.name,
+            "seqProp": self.genbinderName(self.effect, "strongX"),
+            "isCustomProp": True
+        }, {
+            "name": "strongY",
             "seqName": self.transsmlayer.name,
             "seqProp": self.genbinderName(self.effect, "strongY"),
             "isCustomProp": True
         }, {
-            "name": "lock",
+            "name": "locklg",
             "seqName": self.richstrip.name,
             "seqProp": self.genseqProp(self.effect, "Bool", "union_fix_lock"),
             "isCustomProp": False
-        }], 'strong * (self["%s"] if lock == 1 else bind)'%fixXbinderName, defaultValue=1.3)
+        }, {
+            "name": "locksm",
+            "seqName": self.transsmlayer.name,
+            "seqProp": "use_uniform_scale",
+            "isCustomProp": False
+        }], '(strongX if locksm == 1 else strongY) * (self["%s"] if locklg == 1 else bind)'%fixXbinderName, defaultValue=1.3)
 
 
     @classmethod
@@ -65,21 +87,27 @@ class EffectFastBlur(EffectBase):
         lgtranf = cls.getEffectStrip(richstrip, effect, "lg")
 
         layout.label(text="Blur Strong:")
-        xylock.draw(layout, smtranf, cls.genbinderName(effect, "strongX", True), smtranf, cls.genbinderName(effect, "strongY", True), smtranf, "use_uniform_scale")
+        xylock.drawWithExportBox(layout, richstrip, smtranf, cls.genbinderName(effect, "strongX", True), "strongX_export", smtranf, cls.genbinderName(effect, "strongY", True), "strongY_export", smtranf, "use_uniform_scale")
 
         layout.label(text="Fix Strong:")
-        layout.prop(mdtranf, "scale_start_x", text="Multiply Strong")
+        exportbox.draw(layout, richstrip, "mulstrong_export", mdtranf, "scale_start_x", text="Multiply Strong")
 
         layout.label(text="Fix Scale:")
-        xylock.draw(layout, lgtranf, cls.genbinderName(effect, "fixX", True), lgtranf, cls.genbinderName(effect, "fixY", True), cls.getBoolProperty(effect, "union_fix_lock"), "value")
+        xylock.drawWithExportBox(layout, richstrip, lgtranf, cls.genbinderName(effect, "fixX", True), "fixX_export", lgtranf, cls.genbinderName(effect, "fixY", True), "fixY_export", cls.getBoolProperty(effect, "union_fix_lock"), "value")
 
         layout.label(text="Alpha:")
-        layout.prop(lgtranf, "blend_alpha")
+        exportbox.draw(layout, richstrip, "opacity_export", lgtranf, "blend_alpha", text="Blend Opacity")
 
         layout.label(text="Color:")
-        layout.prop(lgtranf, "color_saturation")
+        exportbox.draw(layout, richstrip, "saturation_export", lgtranf, "color_saturation", text="Saturation")
+
+        maskbox.draw(layout, effect, data, lgtranf.modifiers.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "mask")))
         return
 
     @classmethod
     def update(cls, type, identify, context, data, effect, richstrip):
+        if type == 'MASK_SET':
+            mask_modifier = cls.getEffectStrip(richstrip, effect, "lg").modifiers.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "mask"))
+            mask_modifier.input_mask_id = bpy.data.masks[identify]
+
         return False

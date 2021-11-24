@@ -25,10 +25,15 @@ class ICETB_OT_RichStrip_Rebuild(bpy.types.Operator):
 
         # relink the base sequence
         newrsid = "rs%d-"%data.RichStripID
+        from context.scene.sequence_editor import sequences_all
+        # if data.HasAudio:
+        #     richstrip.sequences.get(("rs%d-audio"%rsid_old)+suffix).name = "%saudio"%newrsid
+        # richstrip.sequences.get(("rs%d-movie"%rsid_old)+suffix).name = "%smovie"%newrsid
+        # richstrip.sequences.get(("rs%d-fixfps"%rsid_old)+suffix).name = "%sfixfps"%newrsid
         if data.HasAudio:
-            richstrip.sequences.get(("rs%d-audio"%rsid_old)+suffix).name = "%saudio"%newrsid
-        richstrip.sequences.get(("rs%d-movie"%rsid_old)+suffix).name = "%smovie"%newrsid
-        richstrip.sequences.get(("rs%d-fixfps"%rsid_old)+suffix).name = "%sfixfps"%newrsid
+            sequences_all.get(("rs%d-audio"%rsid_old)+suffix).name = "%saudio"%newrsid
+        sequences_all.get(("rs%d-movie"%rsid_old)+suffix).name = "%smovie"%newrsid
+        sequences_all.get(("rs%d-fixfps"%rsid_old)+suffix).name = "%sfixfps"%newrsid
 
         # relink all effects
         for index, effect in enumerate(data.Effects):

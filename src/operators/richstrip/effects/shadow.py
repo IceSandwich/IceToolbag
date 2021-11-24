@@ -1,6 +1,6 @@
 import bpy
 from .base import EffectBase
-from .widgets import xylock
+from .widgets import xylock, exportbox
 
 class EffectShadow(EffectBase):
     """
@@ -13,6 +13,16 @@ class EffectShadow(EffectBase):
 
     def stage_PropertyDefination(self):
         self.addBoolProperty(self.effect, "union_size_lock", True)
+
+        self.addExportProperty(self.effect, [
+            [ "strongX", "blur", "size_x", False ], 
+            [ "strongY", "blur", "size_y", True ], 
+            [ "offset", "black", "offset", True ], 
+            [ "angle", "black", "angle", True ], 
+            [ "scaleX", "black", "transform.scale_x", False ], 
+            [ "scaleY", "black", "transform.scale_y", False ], 
+            [ "opacity", "blur", "blend_alpha", False ]
+        ])
 
     def stage_SequenceDefination(self, relinkStage):
         if relinkStage:
@@ -77,33 +87,38 @@ class EffectShadow(EffectBase):
             "seqName": self.richstrip.name,
             "seqProp": self.genseqProp(self.effect, "Bool", "union_size_lock"),
             "isCustomProp": False
-        }], "self.size_x if lock == 1 else bind")
+        }], "self.size_x if lock == 1 else bind", defaultValue=0.0)
 
 
     @classmethod
     def draw(cls, context, layout, data, effect, richstrip):
         blurlayer = cls.getEffectStrip(richstrip, effect, "blur")
         blacklayer = cls.getEffectStrip(richstrip, effect, "black")
+        copylayer = cls.getEffectStrip(richstrip, effect, "copy")
 
         layout.label(text="Strong:")
-        xylock.draw(layout, blurlayer, "size_x", blurlayer, cls.genbinderName(effect, "size_y", True), cls.getBoolProperty(effect, "union_size_lock"), "value")
+        xylock.drawWithExportBox(layout, richstrip, blurlayer, "size_x", "strongX_export", blurlayer, cls.genbinderName(effect, "size_y", True), "strongY_export", cls.getBoolProperty(effect, "union_size_lock"), "value")
 
         layout.label(text="Color:")
         cb = blacklayer.modifiers.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "cb"))
         layout.prop(cb.color_balance, "gain", text="Shadow Color")
         
         layout.label(text="Offset:")
-        layout.prop(blacklayer, cls.genbinderName(effect, "offset", True), text="Shadow offset")
+        exportbox.draw(layout, richstrip, "offset_export", blacklayer, cls.genbinderName(effect, "offset", True), "Shadow offset")
 
         layout.label(text="Angle:")
-        layout.prop(blacklayer, cls.genbinderName(effect, "angle", True), text="Shadow direction")
+        exportbox.draw(layout, richstrip, "angle_export", blacklayer, cls.genbinderName(effect, "angle", True), "Shadow direction")
 
         layout.label(text="Scale:")
-        layout.prop(blacklayer.transform, "scale_x", text="Shadow Scale X")
-        layout.prop(blacklayer.transform, "scale_y", text="Shadow Scale Y")
+        xylock.drawWithExportBox(layout, richstrip, blacklayer, "scale_start_x", "scaleX_export", blacklayer, "scale_start_y", "scaleY_export", blacklayer, "use_uniform_scale")
 
         layout.label(text="Opacity:")
-        layout.prop(blurlayer, "blend_alpha", text="Shadow opacity")
+        exportbox.draw(layout, richstrip, "opacity_export", blurlayer, "blend_alpha", "Shadow opacity")
+
+        layout.label(text="Visibility:")
+        layout.prop(copylayer, "mute", toggle=1, text="Only Shadow", icon='GHOST_ENABLED')
+
+        
         return
 
     @classmethod

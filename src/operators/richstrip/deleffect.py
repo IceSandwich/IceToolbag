@@ -3,7 +3,7 @@ from .effects import ICETB_EFFECTS_DICTS, ICETB_EFFECTS_NAMES
 
 class ICETB_OT_RichStrip_Delete(bpy.types.Operator):
     bl_idname = "icetb.richstrip_deleffect"
-    bl_label = "Are you sure to delete the selected effect which will take a few minutes to process?"
+    bl_label = "Are you sure to delete the selected effect?"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
@@ -42,6 +42,31 @@ class ICETB_OT_RichStrip_Delete(bpy.types.Operator):
             #         if 'input_1' in dir(buildinseq) and buildinseq.input_1 == adjseq:
             #             buildinseq.input_1 = crossadjseq
 
+            pattern = 'sequence_editor.sequences_all["%s'%cls.genRegularStripName(data.RichStripID, effect.EffectId, "")
+            patternRichstrip = 'sequence_editor.sequences_all["%s"]'%richstrip.name
+            driverMap = {}
+            
+            # Buildup driver map and delete drivers for custom prop
+            offsetlen = len('sequence_editor.sequences_all["')
+            for x in context.scene.animation_data.drivers:
+                if x.data_path.startswith(pattern):
+                    splitpoint = x.data_path.index('"]')
+                    k, v = x.data_path[offsetlen:splitpoint], x.data_path[splitpoint+2:].strip('.')
+                    if v[:2] == '["' or x.driver.variables['bind'].targets[0].data_path.startswith(patternRichstrip): # export driver
+                        cls.exportToReverse(context, richstrip, v, context.scene.sequence_editor.sequences_all[k])
+                        continue
+                    if k not in driverMap: driverMap[k] = []
+                    driverMap[k].append(v.split('.'))
+
+            # delete remain drivers
+            for seqName, attrNames in driverMap.items():
+                seq = context.scene.sequence_editor.sequences_all[seqName]
+                for attrNameParts in attrNames:
+                    targetseq = seq
+                    for attrName in attrNameParts[:-1]:
+                        targetseq = getattr(targetseq, attrName)
+                    targetseq.driver_remove(attrNameParts[-1])
+                    
             # delete the sequences in this effect
             for buildinseqName in effect.EffectStrips:
                 buildinseq = seqs.get(buildinseqName.value)

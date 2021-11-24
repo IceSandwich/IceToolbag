@@ -16,4 +16,4 @@ class FloatProperty(bpy.types.PropertyGroup):
         if self.effecttrigger == "RichStrip" and self.effectbelong != "":
             bpy.ops.icetb.richstrip_eventdelegate(effectName=self.effectbelong, eventType="FLOAT", eventIdentify=self.effectidentify)
 
-    value: bpy.props.FloatProperty(name="Float Value", update=updateitem)
+    value: bpy.props.FloatProperty(name="Float Value", update=updateitem, options={'ANIMATABLE'})

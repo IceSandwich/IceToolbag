@@ -123,32 +123,37 @@ class EffectOriginal(EffectBase):
         return
 
     @classmethod
+    def calculateCanvasSize(cls, resizeEnum, data):
+        renderX, renderY = bpy.context.scene.render.resolution_x, bpy.context.scene.render.resolution_y
+        movieX, movieY = data.ResolutionWidth, data.ResolutionHeight
+
+        fullx_y, fully_x = movieY * renderX / movieX, movieX * renderY / movieY
+        if resizeEnum == "Scale to Fit":
+            if fullx_y <= renderY or fully_x > renderX:
+                final_scalex = final_scaley = renderX / movieX
+            elif fully_x <= renderX or fullx_y > renderY:
+                final_scalex = final_scaley = renderY / movieY
+        elif resizeEnum == "Scale to Fill":
+            if fullx_y >= renderY or fully_x < renderX:
+                final_scalex = final_scaley = renderX / movieX
+            elif fully_x >= renderX or fullx_y < renderY:
+                final_scalex = final_scaley = renderY / movieY
+        elif resizeEnum == "Stretch to Fill":
+            final_scalex, final_scaley = renderX / movieX, renderY / movieY
+        elif resizeEnum == "Original":
+            final_scalex = final_scaley = 1
+
+        return final_scalex, final_scaley
+
+    @classmethod
     def update(cls, type, identify, context, data, effect, richstrip):
         # don't trigger FLOAT type otherwise lead to forever loop
         if type == "ENUM" or type == 'BOOL':
-            renderX, renderY = context.scene.render.resolution_x, context.scene.render.resolution_y
-            movieX, movieY = data.ResolutionWidth, data.ResolutionHeight
-
             resizeEnum = cls.getEnumProperty(effect, "transform_type").value
 
             # FIXME: when movie resolution is bigger than render resolution
             # the following algorithmn can't perform very well due to the clipping of blender
-
-            fullx_y, fully_x = movieY * renderX / movieX, movieX * renderY / movieY
-            if resizeEnum == "Scale to Fit":
-                if fullx_y <= renderY or fully_x > renderX:
-                    final_scalex = final_scaley = renderX / movieX
-                elif fully_x <= renderX or fullx_y > renderY:
-                    final_scalex = final_scaley = renderY / movieY
-            elif resizeEnum == "Scale to Fill":
-                if fullx_y >= renderY or fully_x < renderX:
-                    final_scalex = final_scaley = renderX / movieX
-                elif fully_x >= renderX or fullx_y < renderY:
-                    final_scalex = final_scaley = renderY / movieY
-            elif resizeEnum == "Stretch to Fill":
-                final_scalex, final_scaley = renderX / movieX, renderY / movieY
-            elif resizeEnum == "Original":
-                final_scalex = final_scaley = 1
+            final_scalex, final_scaley = cls.calculateCanvasSize(resizeEnum, data)
 
             # the following caller will recall `update` function with type=='FLOAT' so we should block `FLOAT` type
             cls.getFloatProperty(effect, "scale_x").value = final_scalex

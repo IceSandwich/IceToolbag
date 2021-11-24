@@ -13,7 +13,7 @@ class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
         return True
 
     def seperate_strips(self, context):
-        # seperate selected strips into `self.movie`, `self.AudioSeq`
+        # seperate selected strips into `self.movie`, `self.audio`
         # auctually `movie` can be another meta strip which has been defined as rich strip
         self.movie = None
         self.audio = None
@@ -85,7 +85,18 @@ class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
             self.audio.channel = 1
             self.audio.select = True
             self.audio.sound.use_memory_cache = True # A/V sync
+
+            self.movie.select = False
+            self.audio.select = True
+            bpy.ops.sequencer.meta_make()
+            submeta = context.scene.sequence_editor.active_strip
+            bpy.ops.sequencer.meta_toggle()
+
+            submeta.name = "rs%d-subdries"%(self.rsid)
             self.audio.name = "rs%d-audio"%(self.rsid)
+
+            bpy.ops.sequencer.select_all(action='DESELECT')
+            bpy.ops.sequencer.meta_toggle() # leave meta_strip
 
         # add speed control to movieseq
         self.movie.select = True

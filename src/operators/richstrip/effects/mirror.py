@@ -1,10 +1,18 @@
 import bpy, os
 from .base import EffectBase
+from .widgets import exportbox
 
 class EffectMirror(EffectBase):
     @classmethod
     def getName(cls):
         return "Mirror"
+
+    def stage_PropertyDefination(self):
+        self.addExportProperty(self.effect, [
+            [ "scale", "img", "scaleFactor", True],
+            [ "offset", "white", "offsetFactor", True]
+        ])
+
 
     def stage_SequenceDefination(self, relinkStage):
         if relinkStage:
@@ -60,7 +68,7 @@ class EffectMirror(EffectBase):
     def stage_BinderDefination(self):
         expression = "bind/%d"%(self.context.scene.render.resolution_y)
         offsetbinderName = self.genbinderName(self.effect, "offsetFactor")
-        self.addPropertyWithBinding(self.white, "transform.scale_y", "offsetFactor", [], expression)
+        self.addPropertyWithBinding(self.white, "transform.scale_y", "offsetFactor", [], expression, defaultValue=0.0)
         self.addPropertyWithDriver(self.context, self.white.transform, "offset_y", [{
             "name": "bind",
             "seqName": self.white.name,
@@ -73,7 +81,7 @@ class EffectMirror(EffectBase):
             "seqName": self.white.name,
             "seqProp": offsetbinderName,
             "isCustomProp": True
-        }], "-({0}-{0}*bind)/2+offset".format(self.context.scene.render.resolution_y), defaultValue=1.0)
+        }], "-({0}-{0}*bind)/2+offset".format(self.context.scene.render.resolution_y), defaultValue=1.0, numRange=(0, self.NUMRANGE_MAX), description="Scale of gradient")
         self.addPropertyWithDriver(self.context, self.imgstrip.transform, "scale_y", [{
             "name": "bind",
             "seqName": self.imgstrip.name,
@@ -84,13 +92,19 @@ class EffectMirror(EffectBase):
         return
 
     @classmethod
-    def draw(cls, context, layout, data, effect, richstrip):
+    def draw(cls, context, layout:bpy.types.UILayout, data, effect, richstrip):
         metastrip = cls.getEffectStrip(richstrip, effect, "mask")
         imgstrip = metastrip.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "img"))
         white = metastrip.sequences.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "white"))
 
         layout.label(text="Gradient:")
         layout.prop(metastrip, "mute", toggle=0, invert_checkbox=True, text="Only Mate")
-        layout.prop(white, cls.genbinderName(effect, "offsetFactor", True), text="Offset")
-        layout.prop(imgstrip, cls.genbinderName(effect, "scaleFactor", True), text="Scale")
+        # layout.prop(white, cls.genbinderName(effect, "offsetFactor", True), text="Offset")
+        exportbox.draw(layout, richstrip, "offset_export", white, cls.genbinderName(effect, "offsetFactor", True), "Offset")
+
+        exportbox.draw(layout, richstrip, "scale_export", imgstrip, cls.genbinderName(effect, "scaleFactor", True), "Scale")
         return
+
+    @classmethod
+    def update(cls, type, identify, context, data, effect, richstrip):
+        return False

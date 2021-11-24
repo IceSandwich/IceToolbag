@@ -81,6 +81,6 @@ class ICETB_PT_RichStripEffectCTL(bpy.types.Panel):
         box.prop(adjustlayer, "color_saturation")
         box.prop(adjustlayer, "color_multiply")
 
-# Fast mask
-# for i, x in enumerate(bpy.data.grease_pencils['Annotations'].layers[0].active_frame.strokes[0].points):
-#   print(i, x.co)
+        box = layout.box()
+        box.label(text="Mask")
+        # box.prop_search(context.scene, 'arma_name', bpy.data, 'masks')

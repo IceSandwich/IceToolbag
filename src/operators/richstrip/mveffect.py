@@ -1,5 +1,6 @@
 import bpy
 from .effects import ICETB_EFFECTS_DICTS, ICETB_EFFECTS_NAMES
+from ...datas.richstrip import RichStripEffect, RichStripData
 
 class ICETB_OT_RichStrip_Move(bpy.types.Operator):
     bl_idname = "icetb.richstrip_mveffect"
@@ -12,122 +13,104 @@ class ICETB_OT_RichStrip_Move(bpy.types.Operator):
     def poll(cls, context):
         return True
 
-    def mvlayer(self, richstrip, data, effect, seqs, framestart, frameend):
-        cureffectIdx = data.EffectsCurrent
-        effectadj = seqs.get(effect.EffectStrips[-1].value)
-        effectinput = seqs.get(effect.EffectStrips[0].value)
-        lenchannels = len(effect.EffectStrips)
-        if cureffectIdx == 0: return # 0 is original effect which should not be moved.
+    def getcoverChannel(self, richstrip:bpy.types.MetaSequence, effect:RichStripEffect):
+        inputstripChannel = richstrip.sequences.get(effect.EffectStrips[0].value).channel
+        adjuststripChannel = richstrip.sequences.get(effect.EffectStrips[-1].value).channel
+        coverChannel = adjuststripChannel - inputstripChannel + 1
+        return coverChannel
 
-        if self.dire == 'UP':
-            targeteffectIdx = cureffectIdx - 1
-            if targeteffectIdx <= 0: return # 0 is original effect which should not be moved.
-            targeteffect = data.Effects[targeteffectIdx]
-            lentargetchannels = len(targeteffect.EffectStrips)
+    def mvlayer(self, context, richstrip:bpy.types.MetaSequence, data:RichStripData, effect:RichStripEffect):
+        if data.EffectsCurrent == 0 or (data.EffectsCurrent == 1 and self.dire == 'UP') or (data.EffectsCurrent == len(data.Effects) - 1 and self.dire == 'DOWN'):
+            self.report({'ERROR'}, "Cannot move this strip.")
+            return {'CANCELLED'}
+            
+        # calculate this effect cover n channels
+        tarEffect = data.Effects[data.EffectsCurrent + (-1 if self.dire == 'UP' else 1)]
+        curCover = self.getcoverChannel(richstrip, effect)
+        tarCover = self.getcoverChannel(richstrip, tarEffect)
 
-            loweffectIdx = cureffectIdx + 1
-            higheffectIdx = targeteffectIdx - 1
+        emptyChannel = richstrip.sequences.get(data.Effects[-1].EffectStrips[-1].value).channel + tarCover + curCover
 
-            higheffectadj = seqs.get(data.Effects[higheffectIdx].EffectStrips[-1].value)
-            targetadj = seqs.get(targeteffect.EffectStrips[-1].value)
-            targetinput = seqs.get(targeteffect.EffectStrips[0].value)
+        # TODO: assert emptyChannel < MAX_CHANNEL
 
-            channelstart = targetinput.channel
-            channelend = effectadj.channel
+        def moveupStrips(effect:RichStripEffect, targetChannel):
+            stripsInstances = [ richstrip.sequences.get(x.value) for x in effect.EffectStrips if richstrip.sequences.get(x.value) ]
+            for i, seq in enumerate(stripsInstances[::-1]):
+                seq.channel = targetChannel - i
+            return targetChannel - len(stripsInstances)
 
-            # break connection
-            effectinput.input_1 = None
-            targetinput.input_1 = None
+        for aboveEffects in data.Effects[data.EffectsCurrent + (1 if self.dire == 'UP' else 2):]:
+            emptyChannel = moveupStrips(aboveEffects, emptyChannel)
 
-            # move one part to empty space
-            for buildinseqName in effect.EffectStrips:
-                buildinseq = seqs.get(buildinseqName.value)
-                if buildinseq.frame_start != frameend + 1:
-                    buildinseq.frame_start = frameend + 1
+        up, down = data.Effects[data.EffectsCurrent + (0 if self.dire == 'UP' else 1)], data.Effects[data.EffectsCurrent + (-1 if self.dire == 'UP' else 0)]
+        upup = data.Effects[data.EffectsCurrent + (1 if self.dire == 'UP' else 2)] if data.EffectsCurrent + (1 if self.dire == 'UP' else 2) < len(data.Effects) else None
+        downdownSeq = richstrip.sequences.get(data.Effects[data.EffectsCurrent + (-2 if self.dire == 'UP' else -1)].EffectStrips[-1].value)
 
-            return
+        # Swap
+        emptyChannel = moveupStrips(down, emptyChannel)
+        emptyChannel = moveupStrips(up, emptyChannel)
 
-            # if 'input_1' in dir(targetinput) and targetinput.input_1 == higheffectadj:
-            #     targetinput.input_1 = effectadj
-            # if 'input_1' in dir(effectinput) and effectinput.input_1 == targetadj:
-            #     effectinput.input_1 = higheffectadj
-            # if loweffectIdx < len(data.Effects):
-            #     loweffectinput = seqs.get(data.Effects[loweffectIdx].EffectStrips[0].value)
-            #     if 'input_1' in dir(loweffectinput) and loweffectinput.input_1 == effectadj:
-            #         loweffectinput.input_1 = targetadj
+        def replaceInput(richstrip:bpy.types.MetaSequence, effect:RichStripEffect, source:bpy.types.Sequence, to:bpy.types.Sequence):
+            for strip in effect.EffectStrips:
+                seq = richstrip.sequences.get(strip.value)
+                if seq and hasattr(seq, "input_1") and seq.input_1 == source:
+                    seq.input_1 = to
 
-            # for buildinseqName in effect.EffectStrips:
-            #     buildinseq = seqs.get(buildinseqName.value)
-            #     buildinseq.frame_start = frameend + 1
-            #     # print("Effect", buildinseq.name, "from", buildinseq.channel, "to", buildinseq.channel - lentargetchannels)
-            #     # buildinseq.channel -= lentargetchannels
+        if upup:
+            replaceInput(richstrip, upup, richstrip.sequences.get(up.EffectStrips[-1].value), richstrip.sequences.get(down.EffectStrips[-1].value))
+        replaceInput(richstrip, down, downdownSeq, richstrip.sequences.get(up.EffectStrips[-1].value))
+        replaceInput(richstrip, up, richstrip.sequences.get(down.EffectStrips[-1].value), downdownSeq)
 
-            # move another part
-            for buildinseqName in targeteffect.EffectStrips:
-                buildinseq = seqs.get(buildinseqName.value)
-                print("TargetEffect", buildinseq.name, "from", buildinseq.channel, "to", buildinseq.channel + lenchannels)
-                buildinseq.channel += lenchannels
+        # upup          ->      upup (Nullable)
+        # up            ->      down
+        # down          ->      up
+        # downdown      ->      downdown
 
-            # move the first part back 
-            for i, buildinseqName in enumerate(effect.EffectStrips):
-                buildinseq = seqs.get(buildinseqName.value)
-                if buildinseq.channel != i + channelstart:
-                    buildinseq.channel = i + channelstart # change channel before setting frame_start. The order is important.
-                    buildinseq.frame_start = framestart
-                else:
-                    buildinseq.channel = i + channelstart
+        data.Effects.move(data.EffectsCurrent, data.EffectsCurrent + (-1 if self.dire == 'UP' else 1))
 
-            # recover connection
-            effectinput.input_1 = higheffectadj
-            targetinput.input_1 = effectadj
-            if loweffectIdx < len(data.Effects):
-                seqs.get(data.Effects[loweffectIdx].EffectStrips[0].value).input_1 = targetadj
+        def movedownStrips(effect:RichStripEffect, targetChannel):
+            stripsInstances = [ richstrip.sequences.get(x.value) for x in effect.EffectStrips if richstrip.sequences.get(x.value) ]
+            for i, seq in enumerate(stripsInstances):
+                seq.channel = targetChannel + i
+            return targetChannel + len(stripsInstances)
 
-            data.Effects.move(cureffectIdx, targeteffectIdx)
+        emptyChannel -= tarCover + curCover - 1
+        for aboveEffects in data.Effects[data.EffectsCurrent + (1 if self.dire == 'UP' else 2) - 2:]:
+            emptyChannel = movedownStrips(aboveEffects, emptyChannel)
 
-        else: # dire == 'DOWN'
-            targeteffectIdx = cureffectIdx + 1
-            if targeteffectIdx >= len(data.Effects): return {"FINISHED"} # already the last one
-            targeteffect = data.Effects[targeteffectIdx]
-            lentargetchannels = len(targeteffect.EffectStrips)
+        oldEffectIdx = data.EffectsCurrent
+        data.EffectsCurrent = data.EffectsCurrent + (-1 if self.dire == 'UP' else 1)
 
-            for buildinseqName in effect.EffectStrips:
-                buildinseq = seqs.get(buildinseqName.value)
-                buildinseq.channel += lentargetchannels
+        self.correctDrivers(context, richstrip, data, tarEffect, oldEffectIdx, data.EffectsCurrent)
+        self.correctDrivers(context, richstrip, data, effect, data.EffectsCurrent, oldEffectIdx)
 
-            for buildinseqName in targeteffect.EffectStrips:
-                buildinseq = seqs.get(buildinseqName.value)
-                buildinseq.channel -= lenchannels
+        return {"FINISHED"}
 
-            loweffectIdx = targeteffect + 1
-            higheffectIdx = cureffectIdx - 1
-
-            higheffectadj = seqs.get(data.Effects[higheffectIdx].EffectStrips[-1].value)
-            targetadj = seqs.get(targeteffect.EffectStrips[-1].value)
-            targetinput = seqs.get(targeteffect.EffectStrips[0].value)
-            if 'input_1' in dir(targetinput) and targetinput.input_1 == effectadj:
-                targetinput.input_1 = higheffectadj
-            if 'input_1' in dir(effectinput) and effectinput.input_1 == higheffectadj:
-                effectinput.input_1 = targetadj
-            if loweffectIdx < len(data.Effects):
-                loweffectinput = seqs.get(data.Effects[loweffectIdx].EffectStrips[0].value)
-                if 'input_1' in dir(loweffectinput) and loweffectinput.input_1 == targetadj:
-                    loweffectinput.input_1 = effectadj
-
-        data.Effects.move(cureffectIdx, targeteffectIdx)
+    def correctDrivers(self, context, richstrip:bpy.types.MetaSequence, data:RichStripData, effect:RichStripEffect, oldEffectIdx:int, newEffectIdx:int):
+        oldpattern = 'IceTB_richstrip_data.Effects[%d]'%oldEffectIdx
+        newpattern = 'IceTB_richstrip_data.Effects[%d]'%newEffectIdx
+        patternRichstrip = 'sequence_editor.sequences_all["%s"].%s'%(richstrip.name, oldpattern)
+        for x in context.scene.animation_data.drivers:
+            for seqName in effect.EffectStrips:
+                pattern = 'sequence_editor.sequences_all["%s"]'%(seqName.value)
+                if x.data_path.startswith(pattern): # fliter driver related to this effect
+                    for variable in x.driver.variables:
+                        if variable.targets[0].data_path.startswith(patternRichstrip): # fliter driver related to IceTB_richstrip_data
+                            variable.targets[0].data_path = variable.targets[0].data_path.replace(oldpattern, newpattern)
+        return
 
     def execute(self, context):
         richstrip = context.selected_sequences[0]
-        data = richstrip.IceTB_richstrip_data
+        data:RichStripData = richstrip.IceTB_richstrip_data
         effect = data.getSelectedEffect()
         effectName = effect.EffectType
 
         if effectName in ICETB_EFFECTS_NAMES:
             cls = ICETB_EFFECTS_DICTS[effectName]
-            seqs, framestart, frameend = cls.enterFistLayer(richstrip)
-            self.mvlayer(richstrip, data, effect, seqs, framestart, frameend)
-            cls.leaveFirstLayer(None)
-
+            cls.enterEditMode(richstrip)
+            ret = self.mvlayer(context, richstrip, data, effect)
+            cls.leaveEditMode()
+            return ret
         else:
             self.report({'ERROR'}, "Unknow effect name called " + effectName)
             return {'CANCELLED'}

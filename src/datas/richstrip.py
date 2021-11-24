@@ -1,5 +1,5 @@
 import bpy
-from ..datas.string_prop import StringProperty
+from ..datas.string_prop import StringProperty, VarStringProperty
 from ..datas.int_prop import IntProperty
 from ..datas.enum_prop import EnumProperty
 from ..datas.float_prop import FloatProperty
@@ -42,13 +42,19 @@ class RichStripEffect(bpy.types.PropertyGroup):
 
     EffectStrips: bpy.props.CollectionProperty(type=StringProperty)
 
-    EffectStrProperties: bpy.props.CollectionProperty(type=StringProperty)
+    EffectStrProperties: bpy.props.CollectionProperty(type=VarStringProperty)
     EffectIntProperties: bpy.props.CollectionProperty(type=IntProperty)
     EffectFloatProperties: bpy.props.CollectionProperty(type=FloatProperty)
     EffectEnumProperties: bpy.props.CollectionProperty(type=EnumProperty)
     EffectBoolProperties: bpy.props.CollectionProperty(type=BoolProperty)
     EffectColorProperties: bpy.props.CollectionProperty(type=ColorProperty)
-    EffectMappingJson: bpy.props.StringProperty(name="Mapping property name to index", default='{"Str":{},"Int":{},"Float":{},"Enum":{},"Bool":{}, "Color":{}}')
+    EffectMappingJson: bpy.props.StringProperty(name="Mapping property name to index", default='{"Str":{},"Int":{},"Float":{},"Enum":{},"Bool":{}, "Color":{}, "Export":{}}')
+
+    def available_changed(self, context):
+        bpy.ops.icetb.richstrip_effectavailable()
+
+    EffectAvailable: bpy.props.BoolProperty(name="Enable for effect", default=True, update=available_changed)
+    EffectAvailableJson: bpy.props.StringProperty(name="Mapping available for effect", default='{}')
 
 class RichStripData(bpy.types.PropertyGroup):
     # RichStrip information
@@ -102,10 +108,7 @@ class RichStripData(bpy.types.PropertyGroup):
         richstrip.IceTB_richstrip_data.RichStripID = rsid
 
         # richstrip.IceTB_richstrip_data.AdjustName = adjuststrip.name
-        if audiostrip is None:
-            richstrip.IceTB_richstrip_data.HasAudio = False
-        else:
-            richstrip.IceTB_richstrip_data.HasAudio = True
+        richstrip.IceTB_richstrip_data.HasAudio = audiostrip is not None
 
         if moviestrip.type == 'META':
             richstrip.IceTB_richstrip_data.ResolutionWidth = context.scene.render.resolution_x
@@ -130,7 +133,7 @@ class RichStripData(bpy.types.PropertyGroup):
     def getProperty(cls, seq):
         return seq.IceTB_richstrip_data
 
-    def addEffect(self, effectType):
+    def addEffect(self, effectType) -> RichStripEffect:
         effect = self.Effects.add()
         effect.EffectType = effectType
         effect.EffectIndex = len(self.Effects)-1
@@ -143,14 +146,14 @@ class RichStripData(bpy.types.PropertyGroup):
         self.EfeectsCounter += 1
         return effect
     
-    def getSelectedEffect(self):
+    def getSelectedEffect(self) -> RichStripEffect:
         return self.Effects[self.EffectsCurrent]
 
-    def getLastEffect(self):
+    def getLastEffect(self) -> RichStripEffect:
         return self.Effects[len(self.Effects)-1]
 
-    def getSelectedEffectType(self):
+    def getSelectedEffectType(self) -> str:
         return self.getSelectedEffect().EffectType
 
-    def getSelectedId(self):
+    def getSelectedId(self) -> int:
         return self.getSelectedEffect().EffectId

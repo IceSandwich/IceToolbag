@@ -24,7 +24,7 @@ class ICETB_PT_RichStripEffects(bpy.types.Panel):
             return
 
         obj = context.selected_sequences[0]
-        data = obj.IceTB_richstrip_data
+        data:RichStripData = obj.IceTB_richstrip_data
 
         if not data.ForceNoDuplicateTip and re.compile(".*?\\.[0-9]{1,3}$").match(obj.name):
             layout.label(text="Do you duplicated a strip? We need to rebuild it.")
@@ -41,5 +41,7 @@ class ICETB_PT_RichStripEffects(bpy.types.Panel):
         col = row.column(align=True)
         col.operator("wm.call_menu", icon="ADD", text="").name = "ICETB_MT_RICHSTRIP_ADD"
         col.operator("icetb.richstrip_deleffect", icon="TRASH", text="")
-        # col.operator("icetb.richstrip_mveffect", icon='TRIA_UP', text="").dire = 'UP'
-        # col.operator("icetb.richstrip_mveffect", icon='TRIA_DOWN', text="").dire = 'DOWN'
+        if data.EffectsCurrent != 0:
+            col.prop(data.getSelectedEffect(), "EffectAvailable", text="", icon="RESTRICT_VIEW_ON")
+        col.operator("icetb.richstrip_mveffect", icon='TRIA_UP', text="").dire = 'UP'
+        col.operator("icetb.richstrip_mveffect", icon='TRIA_DOWN', text="").dire = 'DOWN'
