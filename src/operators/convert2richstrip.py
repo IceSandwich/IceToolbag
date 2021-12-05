@@ -104,13 +104,20 @@ class ICETB_OT_ConvertToRichStrip(bpy.types.Operator):
             self.audio.select = False
         bpy.ops.sequencer.effect_strip_add(type='SPEED', channel=3)
         speed_strip = context.scene.sequence_editor.active_strip
-        speed_strip.multiply_speed = float(self.movie.frame_final_end-self.movie.frame_final_start) / float(self.frame_end-self.movie.frame_final_start)
+
+        speed = float(self.movie.frame_final_end-self.movie.frame_final_start) / float(self.frame_end-self.movie.frame_final_start)
+        if bpy.app.version[0] == 3: # from blender 3
+            speed_strip.speed_control = 'MULTIPLY'
+            speed_strip.speed_length = speed
+        else:
+            speed_strip.multiply_speed = speed
+
         speed_strip.use_frame_interpolate = True
         speed_strip.name = "rs%d-fixfps"%self.rsid
 
         print("scene fps:", self.scene_fps / self.scene_fps_base)
         print("movie fps:", self.movie_fps)
-        print("speed:", speed_strip.multiply_speed)
+        print("speed:", speed)
 
         bpy.ops.sequencer.select_all(action='DESELECT')
         bpy.ops.sequencer.meta_toggle() # leave meta_strip
