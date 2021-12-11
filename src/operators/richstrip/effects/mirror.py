@@ -66,7 +66,7 @@ class EffectMirror(EffectBase):
 
         return
     def stage_BinderDefination(self):
-        expression = "bind/%d"%(self.context.scene.render.resolution_y)
+        expression = "max(1e-6, bind/%d)"%(self.context.scene.render.resolution_y)
         offsetbinderName = self.genbinderName(self.effect, "offsetFactor")
         self.addPropertyWithBinding(self.white, "transform.scale_y", "offsetFactor", [], expression, defaultValue=0.0)
         self.addPropertyWithDriver(self.context, self.white.transform, "offset_y", [{
@@ -87,7 +87,7 @@ class EffectMirror(EffectBase):
             "seqName": self.imgstrip.name,
             "seqProp": self.genbinderName(self.effect, "scaleFactor"),
             "isCustomProp": True
-        }], "bind*%d/1080"%(self.context.scene.render.resolution_y))
+        }], "max(1e-6, bind*%d/1080)"%(self.context.scene.render.resolution_y))
 
         return
 

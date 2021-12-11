@@ -29,6 +29,7 @@ class ICETB_PT_RichStripEffects(bpy.types.Panel):
         if not data.ForceNoDuplicateTip and re.compile(".*?\\.[0-9]{1,3}$").match(obj.name):
             layout.label(text="Do you duplicated a strip? We need to rebuild it.")
             layout.operator("icetb.richstrip_rebuild", text="Yes, i have duplicated this strip.")
+            layout.label(text="If don't, please delete the suffix, eg .001")
             return
 
         # layout.label(text= "Name: " + obj.name)
