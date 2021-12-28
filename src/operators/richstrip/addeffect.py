@@ -1,5 +1,6 @@
 import bpy
 from .effects import ICETB_EFFECTS_DICTS
+from .effects.gmic import onFrameChanged
 
 class ICETB_OT_RichStrip_Add(bpy.types.Operator):
     bl_idname = "icetb.richstrip_addeffect"
@@ -14,7 +15,10 @@ class ICETB_OT_RichStrip_Add(bpy.types.Operator):
 
     def execute(self, context):
         if self.effectName in ICETB_EFFECTS_DICTS.keys():
-            ICETB_EFFECTS_DICTS[self.effectName]._add(context)
+            clazz = ICETB_EFFECTS_DICTS[self.effectName]
+            if clazz._add(context) and clazz.getName() == "GMIC" and onFrameChanged not in bpy.app.handlers.frame_change_post:
+                bpy.app.handlers.frame_change_post.append(onFrameChanged)
+                print("Register handler for framechange")
         else:
             self.report({'ERROR'}, "Unknow effect name called " + self.effectName)
             return {'CANCELLED'}

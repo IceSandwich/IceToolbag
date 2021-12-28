@@ -1,5 +1,6 @@
 import bpy
 from .effects import ICETB_EFFECTS_DICTS, ICETB_EFFECTS_NAMES
+from .effects.gmic import onFrameChanged
 
 class ICETB_OT_RichStrip_Delete(bpy.types.Operator):
     bl_idname = "icetb.richstrip_deleffect"
@@ -80,6 +81,10 @@ class ICETB_OT_RichStrip_Delete(bpy.types.Operator):
 
             # cls.delete(context, richstrip, data, effect)
             cls.leaveEditMode(data)
+            if cls.getName() == "GMIC" and sum([1 for x in data.Effects if x.EffectType == 'GMIC']) == 0:
+                bpy.app.handlers.frame_change_post.remove(onFrameChanged)
+                print("Unregister handler for framechange")
+
             bpy.ops.sequencer.refresh_all()
 
         else:

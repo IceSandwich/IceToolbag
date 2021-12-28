@@ -19,6 +19,8 @@ class EffectBase():
         effect = data.addEffect(cls.getName())
         cls.add(context, richstrip, data, effect)
 
+        return True
+
     @classmethod
     def add(cls, context, richstrip, data, effect):
         # print(cls.getName() + " `add` function is not implemented yet.")

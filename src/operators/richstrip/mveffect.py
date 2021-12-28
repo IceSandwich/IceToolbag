@@ -65,8 +65,11 @@ class ICETB_OT_RichStrip_Move(bpy.types.Operator):
         # up            ->      down
         # down          ->      up
         # downdown      ->      downdown
+        # original      ->      original
 
         data.Effects.move(data.EffectsCurrent, data.EffectsCurrent + (-1 if self.dire == 'UP' else 1))
+        down.EffectIndex -= 1
+        up.EffectIndex += 1
 
         def movedownStrips(effect:RichStripEffect, targetChannel):
             stripsInstances = [ richstrip.sequences.get(x.value) for x in effect.EffectStrips if richstrip.sequences.get(x.value) ]

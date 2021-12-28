@@ -6,6 +6,8 @@ class ICETB_OT_RichStrip_EffectAvailable(bpy.types.Operator):
     bl_label = "Change the available for effect(Private use only)"
     bl_options = {"REGISTER"}
 
+    effectidx: bpy.props.IntProperty(name="Effect Idx", description="which effect need to change visibility.", default=-1)
+
     @classmethod
     def poll(cls, context):
         return True
@@ -13,16 +15,19 @@ class ICETB_OT_RichStrip_EffectAvailable(bpy.types.Operator):
     def execute(self, context):
         richstrip = context.selected_sequences[0]
         data:RichStripData = richstrip.IceTB_richstrip_data
+        if self.effectidx == -1:
+            self.effectidx = data.EffectsCurrent
 
         seqGet = context.scene.sequence_editor.sequences_all.get
 
-        curEffect = data.Effects[data.EffectsCurrent]
+        curEffect:RichStripEffect = data.Effects[self.effectidx]
+        print("change visibility:", curEffect.EffectName)
         curadjust = seqGet(curEffect.EffectStrips[-1].value)
 
-        lastEffect = data.Effects[data.EffectsCurrent-1]
+        lastEffect = data.Effects[self.effectidx-1]
         lastadjust = seqGet(lastEffect.EffectStrips[-1].value)
 
-        nextEffect = data.Effects[data.EffectsCurrent+1] if data.EffectsCurrent + 1 < len(data.Effects) else None
+        nextEffect = data.Effects[self.effectidx+1] if self.effectidx + 1 < len(data.Effects) else None
 
         available = curEffect.EffectAvailable
         mapping = json.loads(curEffect.EffectAvailableJson)

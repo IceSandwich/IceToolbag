@@ -1,5 +1,5 @@
 from .original import EffectOriginal
-from .copy import EffectCopy
+# from .copy import EffectCopy
 from .fastblur import EffectFastBlur
 from .pixelize import EffectPixelize
 from .glow import EffectGlow
@@ -9,6 +9,7 @@ from .shadow import EffectShadow
 from .mirror import EffectMirror
 from .ramp import EffectRamp
 from .matte import EffectMatte
+from .gmic import EffectGMIC
 
 ICETB_EFFECTS_CLASSES = [
     EffectOriginal,
@@ -21,7 +22,8 @@ ICETB_EFFECTS_CLASSES = [
     EffectShadow,
     EffectMirror,
     EffectRamp,
-    EffectMatte
+    EffectMatte,
+    EffectGMIC
 ]
 
 ICETB_EFFECTS_NAMES = [ x.getName() for x in ICETB_EFFECTS_CLASSES ]

@@ -11,6 +11,7 @@ from .richstrip.maskops import ICETB_OT_RichStrip_Annotation2Mask, ICETB_OT_Rich
 from .richstrip.addeffect import ICETB_OT_RichStrip_Add
 from .richstrip.deleffect import ICETB_OT_RichStrip_Delete
 from .richstrip.mveffect import ICETB_OT_RichStrip_Move
+from .richstrip.gmic import ICETB_OT_RichStrip_GmicProcessFrame, ICETB_OT_RichStrip_GmicBakeAll, ICETB_OT_RichStrip_GmicModifiy
 from .eventdelegate import ICETB_OT_RichStrip_EventDelegate
 from .richstrip.rebuild import ICETB_OT_RichStrip_Rebuild
 from .richstrip.availableeffect import ICETB_OT_RichStrip_EffectAvailable
@@ -36,6 +37,9 @@ ICETB_OPERATORS_CLASSES = [
     ICETB_OT_RichStrip_EventDelegate,
     ICETB_OT_RichStrip_Rebuild,
     ICETB_OT_RichStrip_EffectAvailable,
+    ICETB_OT_RichStrip_GmicProcessFrame,
+    ICETB_OT_RichStrip_GmicBakeAll,
+    ICETB_OT_RichStrip_GmicModifiy,
 
     ICETB_OT_GallyerStrip_EventDelegate,
     ICETB_OT_GalleryStrip_Rebuild
