@@ -3,13 +3,13 @@ A blender addon for VSE.
 
 Like its name, this toolbag should contain lots of things but not now.
 
-This addon is made for personal use. I'm glad if it can help you.
+This addon is made for personal use. I'm glad if it can help you. Contributions are welcomed.
 
 ## Notice :bell:
 
 **Support for Blender 3.0 already, have fun.**
 
-**This addon is still in develop. Some feature may not work properly. Current version: 0.0.3 alpha**
+**This addon is still in develop. Some feature may not work properly. Current version: 0.0.5 alpha**
 
 ## Features :flags:
 
@@ -42,6 +42,7 @@ This addon is made for personal use. I'm glad if it can help you.
 |Bright/Contrast Effect :key:|Adjust the bright and contrast.||
 | Glow Effect :key: | Blender internal effect. |                    |
 |Gaussian Blur Effect :key:|Blender internal effect.||
+|GMIC :hammer_and_wrench: |Use GMIC effects in Blender. **Still in progress. **|![](doc/gmic1.gif) ![](doc/gmic2.gif) |
 
 - Gallery
 

@@ -26,6 +26,13 @@ class ICETB_PT_RichStripEffects(bpy.types.Panel):
         obj = context.selected_sequences[0]
         data:RichStripData = obj.IceTB_richstrip_data
 
+        # TODO:
+        # basedir, filename = os.path.split(filepath)
+        # filename_noext, ext = os.path.splitext(filename)
+        # from string import digits
+        # if isinstance(filepath, bytes):
+        #     digits = digits.encode()
+        # filename_nodigits = filename_noext.rstrip(digits)
         if not data.ForceNoDuplicateTip and re.compile(".*?\\.[0-9]{1,3}$").match(obj.name):
             layout.label(text="Do you duplicated a strip? We need to rebuild it.")
             layout.operator("icetb.richstrip_rebuild", text="Yes, i have duplicated this strip.")

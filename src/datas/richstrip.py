@@ -51,7 +51,7 @@ class RichStripEffect(bpy.types.PropertyGroup):
     EffectMappingJson: bpy.props.StringProperty(name="Mapping property name to index", default='{"Str":{},"Int":{},"Float":{},"Enum":{},"Bool":{}, "Color":{}, "Export":{}}')
 
     def available_changed(self, context):
-        bpy.ops.icetb.richstrip_effectavailable()
+        bpy.ops.icetb.richstrip_effectavailable(effectidx=self.EffectIndex)
 
     EffectAvailable: bpy.props.BoolProperty(name="Enable for effect", default=True, update=available_changed)
     EffectAvailableJson: bpy.props.StringProperty(name="Mapping available for effect", default='{}')
