@@ -8,7 +8,7 @@ gmic_qt_path = "src/extra/gmic-3.0.0-qt-win64/gmic_qt.exe"
 gmic_cache = "//IceTBCache"
 gmic_output_suffix = "jpg"
 
-def onFrameChanged(scene, depsgraph): # called by `addeffect.py``
+def onFrameChanged(scene, depsgraph): # called by `addeffect.py`
     if not scene.IceTB_richstrip_automatic_viewport_update: return
     print(">> change frame to", scene.frame_current)
     bpy.ops.icetb.richstrip_gmicprocessframe(stopAtExists=True)
@@ -61,7 +61,7 @@ class EffectGMIC(EffectBase):
         richstrip = context.selected_sequences[0]
         data = richstrip.IceTB_richstrip_data
         effect : RichStripEffect = data.addEffect(cls.getName())
-        cls.add(context, richstrip, data, effect)
+        cls.add(context, richstrip, data, effect) # run stages functions
 
         cachedir = bpy.path.abspath(gmic_cache+"//%s"%effect.EffectName)
         if not os.path.exists(cachedir):

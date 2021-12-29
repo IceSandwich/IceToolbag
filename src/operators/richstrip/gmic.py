@@ -65,7 +65,7 @@ class ICETB_OT_RichStrip_GmicProcessFrame(bpy.types.Operator):
 
 class ICETB_OT_RichStrip_GmicBakeAll(bpy.types.Operator):
     bl_idname = "icetb.richstrip_gmicbakeall"
-    bl_label = "Back All frames"
+    bl_label = "Bake All frames"
     bl_options = {"REGISTER"}
 
     @classmethod
