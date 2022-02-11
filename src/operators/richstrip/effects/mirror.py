@@ -20,8 +20,8 @@ class EffectMirror(EffectBase):
             self.white = self.getEffectStrip(self.richstrip, self.effect, "white")
             return
 
-        copy = self.addBuiltinEffectStrip(self.context, self.richstrip, self.effect, 'TRANSFORM', "copy")
-        color = self.addBuiltinEffectStrip(self.context, self.richstrip, self.effect, 'COLOR', 'mask') # this name will be replaced later.
+        copy = self.addBuiltinEffectStrip_ClassLevel(self.context, self.richstrip, self.effect, 'TRANSFORM', "copy")
+        color = self.addBuiltinEffectStrip_ClassLevel(self.context, self.richstrip, self.effect, 'COLOR', 'mask') # this name will be replaced later.
 
         bpy.ops.sequencer.select_all(action='DESELECT')
         color.select = True
@@ -40,7 +40,7 @@ class EffectMirror(EffectBase):
         color.channel = 1
         color.select = True
 
-        self.white = self.addBuiltinEffectStrip(self.context, self.richstrip, self.effect, 'COLOR', 'white')
+        self.white = self.addBuiltinEffectStrip_ClassLevel(self.context, self.richstrip, self.effect, 'COLOR', 'white')
         self.data.EffectCurrentMaxChannel1 -= 1 # preserve channel cause addBuiltinEffectStrip will add 1
         self.white.color = (1, 1, 1)
         self.white.channel = 2
@@ -62,7 +62,7 @@ class EffectMirror(EffectBase):
         modifier.input_mask_strip = metastrip
         self.imgstrip = imgstrip
 
-        adjustlayer = self.addBuiltinEffectStrip(self.context, self.richstrip, self.effect, 'ADJUSTMENT', "adjust")
+        adjustlayer = self.addBuiltinEffectStrip_ClassLevel(self.context, self.richstrip, self.effect, 'ADJUSTMENT', "adjust")
 
         return
     def stage_BinderDefination(self):
@@ -100,9 +100,9 @@ class EffectMirror(EffectBase):
         layout.label(text="Gradient:")
         layout.prop(metastrip, "mute", toggle=0, invert_checkbox=True, text="Only Mate")
         # layout.prop(white, cls.genbinderName(effect, "offsetFactor", True), text="Offset")
-        exportbox.draw(layout, richstrip, "offset_export", white, cls.genbinderName(effect, "offsetFactor", True), "Offset")
+        exportbox.draw(layout, richstrip, cls.getBoolProperty(effect, "offset_export"), white, cls.genbinderName(effect, "offsetFactor", True), "Offset")
 
-        exportbox.draw(layout, richstrip, "scale_export", imgstrip, cls.genbinderName(effect, "scaleFactor", True), "Scale")
+        exportbox.draw(layout, richstrip, cls.getBoolProperty(effect, "scale_export"), imgstrip, cls.genbinderName(effect, "scaleFactor", True), "Scale")
         return
 
     @classmethod

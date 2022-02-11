@@ -1,23 +1,17 @@
 import bpy
 from .base import EffectBase
-from .widgets import xylock
+from .widgets import xylock, exportbox, cropbox, maskbox
 
 class EffectOriginal(EffectBase):
-    """
-        EffectEnumProperties:
-            [0]: Resize method
-        EffectFloatProperties:
-            [0]: Scale X
-            [1]: Scale Y
-        EffectBoolProperties:
-            [0]: Union Scale
-    """
     @classmethod
     def getName(cls):
         return "Original"
 
     def stage_Before(self):
-        self.richstrip.sequences.get("rs%d-fixfps"%self.data.RichStripID).select = True
+        lastSeq = self.richstrip.sequences.get("rs%d-fixfps"%self.data.RichStripID)
+        if not lastSeq:
+            lastSeq = self.getMovieStrip(self.richstrip)
+        lastSeq.select = True
 
     def stage_PropertyDefination(self):
         self.addEnumProperty(self.effect, "transform_type", ["Scale to Fit", "Scale to Fill", "Stretch to Fill", "Original"])
@@ -25,8 +19,18 @@ class EffectOriginal(EffectBase):
         self.addFloatProperty(self.effect, "scale_y", 1) # float 1
         self.addBoolProperty(self.effect, "union_scale_lock", False)
 
+        self.addExportProperty(self.effect, [
+            [ "pos_x", "movie", "pos_x", True ],
+            [ "pos_y", "movie", "pos_y", True ],
+            [ "rotation", "movie", "rotation", True ],
+            [ "scalex", "movie", "scale_x", True ],
+            [ "scaley", "movie", "scale_y", True ]
+        ])
+
     def stage_SequenceDefination(self, relinkStage):
-        self.addBuiltinStrip('TRANSFORM', 'adjust')
+        if relinkStage:
+            return
+        self.addBuiltinEffectStrip('TRANSFORM', 'adjust')
 
     def stage_BinderDefination(self):
         movie = self.getMovieStrip(self.richstrip)
@@ -69,57 +73,65 @@ class EffectOriginal(EffectBase):
             "isCustomProp": True
         }], '(bindX if lock == 1 else bind) * scale', defaultValue=1.0)
 
+        self.addPropertyWithBinding(movie, "transform.rotation", "rotation", [{
+            "name": "mirrorX",
+            "seqName": movie.name,
+            "seqProp": "use_flip_x",
+            "isCustomProp": False
+        }, {
+            "name": "mirrorY",
+            "seqName": movie.name,
+            "seqProp": "use_flip_y",
+            "isCustomProp": False
+        }], '-radians(bind) if (mirrorX == 1) ^ (mirrorY == 1) else radians(bind)', defaultValue=0.0)
+
     def stage_After(self):
         self._update("ENUM", "transform_type", self.context) # set transform_type to first one
 
 
     @classmethod
-    def draw(cls, context, layout, data, effect, richstrip):
+    def draw(cls, context, layout:bpy.types.UILayout, data, effect, richstrip):
         movielayer = cls.getMovieStrip(richstrip)
         audiolayer = cls.getAudioStrip(richstrip)
         adjustlayer = cls.getEffectStrip(richstrip, effect, "adjust")
 
         box = layout.box()
-        box.row().label(text="Translate")
-        row = box.row(align=True)
-        row.prop(movielayer, cls.genbinderName(effect, "pos_x", True), text="X")
-        row.prop(movielayer, cls.genbinderName(effect, "pos_y", True), text="Y")
+        box.row().label(text="Translate", icon="ORIENTATION_LOCAL")
+        xylock.drawWithExportBox_NoLock(box, richstrip, movielayer, cls.genbinderName(effect, "pos_x", True), "pos_x", movielayer, cls.genbinderName(effect, "pos_y", True), "pos_y" )
+
+        layout.separator()
 
         box = layout.box()
-        box.label(text="Scale")
+        box.label(text="Scale", icon="FIXED_SIZE")
         box.prop(cls.getEnumProperty(effect, "transform_type"), "value", text="Resize")
-        xylock.draw(box, movielayer, cls.genbinderName(effect, "scale_x", True), movielayer, cls.genbinderName(effect, "scale_y", True), cls.getBoolProperty(effect, "union_scale_lock"), "value")
+        xylock.drawWithExportBox(box, richstrip, movielayer, cls.genbinderName(effect, "scale_x", True), "scalex", movielayer, cls.genbinderName(effect, "scale_y", True), "scaley", cls.getBoolProperty(effect, "union_scale_lock"), "value", union_label="Scale" )
+
+        layout.separator()
 
         box = layout.box()
-        box.label(text="Rotation")
-        box.prop(adjustlayer.transform, "rotation", text="Degree")
+        box.label(text="Rotation", icon="DRIVER_ROTATIONAL_DIFFERENCE")
+        exportbox.draw(box, richstrip, "rotation", movielayer, cls.genbinderName(effect, "rotation", True), text="Rotation")
+
+        layout.separator()
 
         box = layout.box()
-        box.label(text="Mirror")
+        box.label(text="Mirror", icon="MOD_MIRROR")
         row = box.row(align=True)
-        row.prop(movielayer, "use_flip_x", toggle=1, text="Flip X")
-        row.prop(movielayer, "use_flip_y", toggle=1, text="Flip Y")
+        row.prop(movielayer, "use_flip_x", toggle=1, text="Flip X", icon="ARROW_LEFTRIGHT")
+        row.prop(movielayer, "use_flip_y", toggle=1, text="Flip Y", icon="EMPTY_SINGLE_ARROW")
 
         # box = layout.box()
         # box.row().label(text="Time (Only movie)")
         # box.prop(movielayer, "use_reverse_frames", toggle=1)
 
         if audiolayer is not None:
+            layout.separator()
             box = layout.box()
             box.row().label(text="Audio")
             row = box.row(align=True)
             row.prop(audiolayer, "volume")
-            row.prop(audiolayer, "mute", icon="MUTE_IPO_ON", toggle=1)
+            row.prop(audiolayer, "mute", text="", toggle=0, icon="MUTE_IPO_ON")
 
-        # layout.label(text="Movie Transform:")
-        # row = layout.row(align=True)
-        # adjustoffset = adjustlayer.transform
-        # row.prop(adjustoffset, "offset_x", text="X")
-        # row.prop(adjustoffset, "offset_y", text="Y")
-
-        # layout.label(text="Movie Color:")
-        # layout.prop(adjustlayer, "color_saturation")
-        # layout.prop(adjustlayer, "color_multiply")
         return
 
     @classmethod

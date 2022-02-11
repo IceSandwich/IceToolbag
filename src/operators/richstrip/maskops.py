@@ -5,6 +5,7 @@ from .effects.original import EffectOriginal
 class ICETB_OT_RichStrip_Annotation2Mask(bpy.types.Operator):
     bl_idname = "icetb.richstrip_annotation2mask"
     bl_label = "Annotation to Mask"
+    bl_description = "Mask from annotation"
     bl_options = {"REGISTER", "UNDO"}
 
     effectName_plusmaskId: bpy.props.StringProperty(name="The type of effect and id, should be `effectName`+'$$'+`rsid`+'_'+`effectId`+'$$'+'replace(true/false)?'")
@@ -73,6 +74,7 @@ class ICETB_OT_RichStrip_Annotation2Mask(bpy.types.Operator):
 class ICETB_OT_RichStrip_OpenMaskEditor(bpy.types.Operator):
     bl_idname = "icetb.richstrip_openmaskeditor"
     bl_label = "Open Mask Editor"
+    bl_description = "Open Mask Editor"
     bl_options = {"REGISTER", "UNDO"}
 
     maskName: bpy.props.StringProperty(name="Mask Name")

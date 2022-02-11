@@ -12,8 +12,8 @@ class EffectGlow(EffectBase):
         cls.enterEditMode(richstrip)
 
         richstrip.sequences.get(data.Effects[-2].EffectStrips[-1].value).select = True
-        glowlayer = cls.addBuiltinEffectStrip(context, richstrip, effect, 'GLOW', "glow")
-        adjustlayer = cls.addBuiltinEffectStrip(context, richstrip, effect, 'ADJUSTMENT', "adjust")
+        glowlayer = cls.addBuiltinEffectStrip_ClassLevel(context, richstrip, effect, 'GLOW', "glow")
+        adjustlayer = cls.addBuiltinEffectStrip_ClassLevel(context, richstrip, effect, 'ADJUSTMENT', "adjust")
         
         modifier = glowlayer.modifiers.new(cls.genRegularStripName(data.RichStripID, effect.EffectId, "mask"), 'MASK')
         modifier.input_mask_type = 'ID'
@@ -25,7 +25,7 @@ class EffectGlow(EffectBase):
             ["blur", "glow", "blur_radius", False ],
             ["quality", "glow", "quality", False ]
         ])
-        cls.addBoolProperty(effect, "mask_though", False)
+        cls.addBoolProperty(effect, "mask_through", False)
 
         cls.leaveEditMode(data)
         return
@@ -35,21 +35,26 @@ class EffectGlow(EffectBase):
         return
 
     @classmethod
-    def draw(cls, context, layout, data, effect, richstrip):
+    def draw(cls, context, layout:bpy.types.UILayout, data, effect, richstrip):
         glowlayer = cls.getEffectStrip(richstrip, effect, "glow")
 
-        layout.label(text="Glow:")
-        exportbox.draw(layout, richstrip, "threshold_export", glowlayer, "threshold", text="Threshold")
-        exportbox.draw(layout, richstrip, "clamp_export", glowlayer, "clamp", text="Clamp")
-        exportbox.draw(layout, richstrip, "boost_factor_export", glowlayer, "boost_factor", text="Boost Factor")
-        layout.prop(glowlayer, "use_only_boost", toggle=1)
+        box = layout.box()
+        box.label(text="Glow", icon="LIGHT")
+        exportbox.draw(box, richstrip, "threshold", glowlayer, "threshold", text="Threshold")
+        exportbox.draw(box, richstrip, "clamp", glowlayer, "clamp", text="Clamp")
+        exportbox.draw(box, richstrip, "boost_factor", glowlayer, "boost_factor", text="Boost Factor")
+        box.prop(glowlayer, "use_only_boost", toggle=0)
         
-        layout.label(text="Additional:")
-        exportbox.draw(layout, richstrip, "blur_export", glowlayer, "blur_radius", text="Blur Radius")
-        exportbox.draw(layout, richstrip, "quality_export", glowlayer, "quality", text="Quality")
+        layout.separator()
 
-        maskbox.draw(layout, effect, data, glowlayer.modifiers.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "mask")), mask_though="mask_though")
-        return
+        box = layout.box()
+        box.label(text="Blur", icon="MATFLUID")
+        exportbox.draw(box, richstrip, "blur", glowlayer, "blur_radius", text="Blur Radius")
+        exportbox.draw(box, richstrip, "quality", glowlayer, "quality", text="Quality")
+
+        layout.separator()
+
+        maskbox.draw(layout, effect, data, glowlayer.modifiers.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "mask")), cls.getBoolProperty(effect, "mask_through"))
 
     @classmethod
     def update(cls, type, identify, context, data, effect, richstrip):
@@ -58,7 +63,7 @@ class EffectGlow(EffectBase):
             mask_modifier.input_mask_id = bpy.data.masks[identify]
 
         if type == 'BOOL':
-            if identify == "mask_though":
+            if identify == "mask_through":
                 glowlayer = cls.getEffectStrip(richstrip, effect, "glow")
                 glowlayer.blend_type = 'ALPHA_OVER' if cls.getBoolProperty(effect, identify).value else 'REPLACE'
 

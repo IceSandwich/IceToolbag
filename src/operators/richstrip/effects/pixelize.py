@@ -31,19 +31,19 @@ class EffectPixelize(EffectBase):
             self.translglayer = self.getEffectStrip(self.richstrip, self.effect, "lg")
             return
 
-        self.transsmlayer = self.addBuiltinStrip('TRANSFORM', "sm")
+        self.transsmlayer = self.addBuiltinEffectStrip('TRANSFORM', "sm")
         self.transsmlayer.blend_type = 'ALPHA_UNDER'
         self.transsmlayer.use_uniform_scale = True
         self.transsmlayer.interpolation = 'NONE'
 
-        self.translglayer = self.addBuiltinStrip('TRANSFORM', "lg")
+        self.translglayer = self.addBuiltinEffectStrip('TRANSFORM', "lg")
         self.translglayer.blend_type = 'REPLACE'
         self.translglayer.use_uniform_scale = False
         self.translglayer.interpolation = 'NONE'
         modifier = self.translglayer.modifiers.new(self.genRegularStripName(self.data.RichStripID, self.effect.EffectId, "mask"), 'MASK')
         modifier.input_mask_type = 'ID'
 
-        self.addBuiltinStrip('ADJUSTMENT', "adjust")
+        self.addBuiltinEffectStrip('ADJUSTMENT', "adjust")
 
     def stage_BinderDefination(self):
         self.addPropertyWithBinding(self.transsmlayer, "scale_start_x", "strongX", [], "1.0 / (bind+1e-6)", defaultValue=100.0)
@@ -79,19 +79,19 @@ class EffectPixelize(EffectBase):
         }], '(strongX if locksm == 1 else strongY) * (bind if locklg == 0 else self["%s"])'%fixXbinderName, defaultValue=1.0)
 
     @classmethod
-    def draw(cls, context, layout, data, effect, richstrip):
+    def draw(cls, context, layout:bpy.types.UILayout, data, effect, richstrip):
         smtranf = cls.getEffectStrip(richstrip, effect, "sm")
         lgtranf = cls.getEffectStrip(richstrip, effect, "lg")
         mask_modifier = lgtranf.modifiers.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "mask"))
 
-        layout.label(text="Pixelize Strong:")
-        xylock.drawWithExportBox(layout, richstrip, smtranf, cls.genbinderName(effect, "strongX", True), "strongX_export", smtranf, cls.genbinderName(effect, "strongY", True), "strongY_export", smtranf, "use_uniform_scale")
-        
-        layout.label(text="Fix Scale:")
-        xylock.drawWithExportBox(layout, richstrip, lgtranf, cls.genbinderName(effect, "fixX", True), "fixX_export", lgtranf, cls.genbinderName(effect, "fixY", True), "fixY_export", cls.getBoolProperty(effect, "fixScale"), "value")
+        box = layout.box()
+        box.label(text="Pixelize", icon="TEXTURE")
+        xylock.drawWithExportBox(box, richstrip, smtranf, cls.genbinderName(effect, "strongX", True), "strongX", smtranf, cls.genbinderName(effect, "strongY", True), "strongY", smtranf, "use_uniform_scale", union_label="Strong")
+        xylock.drawWithExportBox(box, richstrip, lgtranf, cls.genbinderName(effect, "fixX", True), "fixX", lgtranf, cls.genbinderName(effect, "fixY", True), "fixY", cls.getBoolProperty(effect, "fixScale"), "value", union_label="Fix Scale")
 
-        maskbox.draw(layout, effect, data, mask_modifier, mask_though="mask_though")
-        return
+        layout.separator()
+
+        maskbox.draw(layout, effect, data, mask_modifier, cls.getBoolProperty(effect, "mask_though"))
 
     @classmethod
     def update(cls, type, identify, context, data, effect, richstrip):

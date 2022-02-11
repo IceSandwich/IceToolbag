@@ -21,7 +21,7 @@ class ICETB_OT_RichStrip_Move(bpy.types.Operator):
 
     def mvlayer(self, context, richstrip:bpy.types.MetaSequence, data:RichStripData, effect:RichStripEffect):
         if data.EffectsCurrent == 0 or (data.EffectsCurrent == 1 and self.dire == 'UP') or (data.EffectsCurrent == len(data.Effects) - 1 and self.dire == 'DOWN'):
-            self.report({'ERROR'}, "Cannot move this strip.")
+            self.report({'ERROR'}, "Cannot move this effect in this direction.")
             return {'CANCELLED'}
             
         # calculate this effect cover n channels

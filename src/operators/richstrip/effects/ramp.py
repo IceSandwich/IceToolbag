@@ -45,7 +45,7 @@ class EffectRamp(EffectBase):
         cls.enterEditMode(richstrip)
 
         richstrip.sequences.get(data.Effects[-2].EffectStrips[-1].value).select = True
-        adjustlayer = cls.addBuiltinEffectStrip(context, richstrip, effect, 'ADJUSTMENT', "adjust")
+        adjustlayer = cls.addBuiltinEffectStrip_ClassLevel(context, richstrip, effect, 'ADJUSTMENT', "adjust")
 
         curves = adjustlayer.modifiers.new(cls.genRegularStripName(data.RichStripID, effect.EffectId, "curves"), "CURVES")
         mapping = curves.curve_mapping

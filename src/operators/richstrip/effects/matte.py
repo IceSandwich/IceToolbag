@@ -39,15 +39,15 @@ class EffectMatte(EffectBase):
             self.translayer = self.getEffectStrip(self.richstrip, self.effect, "transf")
             return
 
-        self.adjustlayer = self.addBuiltinStrip('TRANSFORM', "base")
+        self.adjustlayer = self.addBuiltinEffectStrip('TRANSFORM', "base")
 
-        self.blurlayer = self.addBuiltinStrip('GAUSSIAN_BLUR', "blur")
+        self.blurlayer = self.addBuiltinEffectStrip('GAUSSIAN_BLUR', "blur")
         self.blurlayer.size_x = self.blurlayer.size_y = 10
 
         self.richstrip.sequences.get(self.data.Effects[-2].EffectStrips[-1].value).select = True
-        self.translayer = self.addBuiltinStrip('TRANSFORM', "transf")
+        self.translayer = self.addBuiltinEffectStrip('TRANSFORM', "transf")
 
-        self.addBuiltinStrip('ADJUSTMENT', "adjust")
+        self.addBuiltinEffectStrip('ADJUSTMENT', "adjust")
 
 
         # green band

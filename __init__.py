@@ -13,14 +13,13 @@
 
 import bpy, os
 from .src import *
-from bpy.app.handlers import persistent
 
 bl_info = {
     "name" : "IceToolbag",
     "author" : "IceSandwich",
     "description" : "A blender addon for VSE, made for personal use.",
     "blender" : (2, 93, 0),
-    "version" : (0, 0, 5),
+    "version" : (0, 0, 6),
     "location" : "Sequencer Editor",
     "warning" : "This addon is still in develop. Use at your own risk.",
     "category" : "Sequencer",
@@ -34,21 +33,8 @@ seqmsgbus = ICETB_MSGBUS
 seqPreview_km = None # Key map for sequence preview window
 addon_keymaps = []
 
-depsgraphUpdateDisable = False
-
 def updateSequenceViewport():
     bpy.ops.sequencer.refresh_all()
-
-@persistent
-def updateSequenceViewportPersistent(scene):
-    global depsgraphUpdateDisable
-    # bpy.app.handlers.depsgraph_update_post.remove(updateSequenceViewportPersistent)
-    if scene.IceTB_richstrip_automatic_viewport_update and not depsgraphUpdateDisable:
-        depsgraphUpdateDisable = True
-        # print("update from depsgraph")
-        bpy.ops.sequencer.refresh_all()
-        depsgraphUpdateDisable = False
-    # bpy.app.handlers.depsgraph_update_post.append(updateSequenceViewportPersistent)
 
 def register():
     global seqPreview_km
@@ -65,6 +51,8 @@ def register():
             cls.setupMenu(True)
         if hasattr(cls, 'setupProperty'):
             cls.setupProperty(True)
+        if hasattr(cls, 'setupHandlers'):
+            cls.setupHandlers(True)
     
     if kcfg is not None:
         addon_keymaps.append(seqPreview_km)
@@ -77,9 +65,6 @@ def register():
             notify=updateSequenceViewport,
         )
 
-    bpy.app.handlers.depsgraph_update_post.append(updateSequenceViewportPersistent)
-    print("Register handler for depsgraph")
-
 def unregister():
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
@@ -88,14 +73,13 @@ def unregister():
             cls.setupMenu(False)
         if hasattr(cls, 'setupProperty'):
             cls.setupProperty(False)
+        if hasattr(cls, 'setupHandlers'):
+            cls.setupHandlers(False)
 
     for km in addon_keymaps:
         bpy.context.window_manager.keyconfigs.addon.keymaps.remove(km)
 
     addon_keymaps.clear()
-
-    bpy.app.handlers.depsgraph_update_post.remove(updateSequenceViewportPersistent)
-    print("Unregister handler for desgraph")
 
     # bpy.msgbus.clear_by_owner(seqmsgbus)
 

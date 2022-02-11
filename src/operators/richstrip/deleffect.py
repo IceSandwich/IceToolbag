@@ -1,10 +1,10 @@
 import bpy
 from .effects import ICETB_EFFECTS_DICTS, ICETB_EFFECTS_NAMES
-from .effects.gmic import onFrameChanged
 
 class ICETB_OT_RichStrip_Delete(bpy.types.Operator):
     bl_idname = "icetb.richstrip_deleffect"
     bl_label = "Are you sure to delete the selected effect?"
+    bl_description = "Delete selected effect"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
@@ -53,7 +53,7 @@ class ICETB_OT_RichStrip_Delete(bpy.types.Operator):
                 if x.data_path.startswith(pattern):
                     splitpoint = x.data_path.index('"]')
                     k, v = x.data_path[offsetlen:splitpoint], x.data_path[splitpoint+2:].strip('.')
-                    if v[:2] == '["' or x.driver.variables['bind'].targets[0].data_path.startswith(patternRichstrip): # export driver
+                    if v[:2] == '["' or ('bind' in x.driver.variables and x.driver.variables['bind'].targets[0].data_path.startswith(patternRichstrip)): # export driver
                         cls.exportToReverse(context, richstrip, v, context.scene.sequence_editor.sequences_all[k])
                         continue
                     if k not in driverMap: driverMap[k] = []
@@ -81,9 +81,8 @@ class ICETB_OT_RichStrip_Delete(bpy.types.Operator):
 
             # cls.delete(context, richstrip, data, effect)
             cls.leaveEditMode(data)
-            if cls.getName() == "GMIC" and sum([1 for x in data.Effects if x.EffectType == 'GMIC']) == 0:
-                bpy.app.handlers.frame_change_post.remove(onFrameChanged)
-                print("Unregister handler for framechange")
+            if hasattr(cls, "SIG_Add"):
+                cls.SIG_Add(context, False)
 
             bpy.ops.sequencer.refresh_all()
 

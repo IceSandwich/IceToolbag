@@ -15,6 +15,7 @@ from .richstrip.gmic import ICETB_OT_RichStrip_GmicProcessFrame, ICETB_OT_RichSt
 from .eventdelegate import ICETB_OT_RichStrip_EventDelegate
 from .richstrip.rebuild import ICETB_OT_RichStrip_Rebuild
 from .richstrip.availableeffect import ICETB_OT_RichStrip_EffectAvailable
+from .richstrip.freeze_frame import ICETB_OT_RichStrip_FreezeFrame
 
 from .gallerystrip_eventdelegate import ICETB_OT_GallyerStrip_EventDelegate
 from .gallerystrip.rebuild import ICETB_OT_GalleryStrip_Rebuild
@@ -40,6 +41,7 @@ ICETB_OPERATORS_CLASSES = [
     ICETB_OT_RichStrip_GmicProcessFrame,
     ICETB_OT_RichStrip_GmicBakeAll,
     ICETB_OT_RichStrip_GmicModifiy,
+    ICETB_OT_RichStrip_FreezeFrame,
 
     ICETB_OT_GallyerStrip_EventDelegate,
     ICETB_OT_GalleryStrip_Rebuild

@@ -1,5 +1,6 @@
-import bpy
+import bpy, typing
 from ...datas.marker_layer import MarkerLayer_OneLayer as MarkerLayer_Collection
+from ...datas.marker_layer import MarkerLayer_OneMarker
 from ...datas.string_prop import StringProperty
 
 class ICETB_OT_Marker_BeatMatch(bpy.types.Operator):
@@ -59,14 +60,14 @@ class ICETB_OT_Marker_BeatMatch(bpy.types.Operator):
         # assert(layer_data is not None) # layer_data should not be None
         layer_data[layers_curidx].parseFromCurrentScene(context, replace=True) # apply current markers
 
-        movie_markers = layer_data[int(self.align_layer1)].markers
-        audio_markers = layer_data[int(self.align_layer2)].markers
+        movie_markers:typing.List[MarkerLayer_OneMarker] = layer_data[int(self.align_layer1)].markers
+        audio_markers:typing.List[MarkerLayer_OneMarker] = layer_data[int(self.align_layer2)].markers
 
         if len(movie_markers) != len(audio_markers):
             self.report({'ERROR'}, "The length of markers should be same.")
             return {'CANCELLED'}
 
-        # align to marker
+        # align to first marker
         movie_strip_framestart = MovieSeq.frame_final_start
         movie_strip_frameend = MovieSeq.frame_final_end
         align2marker_parameter = {
@@ -101,10 +102,14 @@ class ICETB_OT_Marker_BeatMatch(bpy.types.Operator):
         speed_strip = context.scene.sequence_editor.active_strip
         speed_strip.use_default_fade = False # bacause multiply speed cannot animate, we need to use speed_factor
         speed_strip.use_frame_interpolate = True
+        if bpy.app.version[0] == 3: # for blender 3
+            speed_strip.speed_control = 'MULTIPLY'
         # speed_strip.speed_factor = 1
         # speed_strip.keyframe_insert("speed_factor", frame=MovieSeq.frame_final_start)
 
         # add fcurve to speed_strip
+        if context.scene.animation_data is None:
+            context.scene.animation_data_create()
         if context.scene.animation_data.action is None:
             context.scene.animation_data.action = bpy.data.actions.new("MarkerBeatMatchAction")
         fcurve = context.scene.animation_data.action.fcurves.new(speed_strip.path_from_id("speed_factor"))

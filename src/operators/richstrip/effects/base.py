@@ -13,7 +13,7 @@ class EffectBase():
         return "Untitled Effect"
 
     @classmethod
-    def _add(cls, context):
+    def _add(cls, context, reportFunc):
         richstrip = context.selected_sequences[0]
         data = richstrip.IceTB_richstrip_data
         effect = data.addEffect(cls.getName())
@@ -159,8 +159,10 @@ class EffectBase():
         data = richstrip.IceTB_richstrip_data
         seqname = cls.genRegularStripName(data.RichStripID, effect.EffectId, effectName)
         ret = richstrip.sequences.get(seqname)
-        if ret is None:
-            return bpy.context.scene.sequence_editor.sequences_all.get(seqname)
+        if ret is None: # probably submeta strip
+            ret = bpy.context.scene.sequence_editor.sequences_all.get(seqname)
+            if ret is None: # probably original internal strip
+                ret = richstrip.sequences.get("rs%d-%s"%(data.RichStripID, effectName))
         return ret
 
     @classmethod
@@ -187,7 +189,7 @@ class EffectBase():
     ################################################################
 
     @classmethod
-    def addBuiltinEffectStrip(cls, context, richstrip, rseffect, effectType, effectName):
+    def addBuiltinEffectStrip_ClassLevel(cls, context, richstrip, rseffect, effectType, effectName):
         """
             return exists strip if already created.
         """
@@ -202,8 +204,23 @@ class EffectBase():
         effectlayer.name = stripName
         rseffect.EffectStrips.add().value = effectlayer.name
         return effectlayer
-    def addBuiltinStrip(self, effectType, effectName): # for instance function
-        return self.addBuiltinEffectStrip(self.context, self.richstrip, self.effect, effectType, effectName)
+    @classmethod
+    def addBuiltinImageStrip_ClassLevel(cls, context, richstrip, rseffect, effectName, directory, filenames):
+        data = richstrip.IceTB_richstrip_data
+        stripName = cls.genRegularStripName(data.RichStripID, rseffect.EffectId, effectName)
+        seq = richstrip.sequences.get(stripName)
+        if seq is not None:
+            return seq
+        data.EffectCurrentMaxChannel1 += 1
+        bpy.ops.sequencer.image_strip_add(directory=directory, files=filenames, relative_path=True, show_multiview=False, frame_start=richstrip.frame_final_start, frame_end=richstrip.frame_final_end, channel=data.EffectCurrentMaxChannel1, set_view_transform=False)
+        effectlayer = context.scene.sequence_editor.active_strip
+        effectlayer.name = stripName
+        rseffect.EffectStrips.add().value = effectlayer.name
+        return effectlayer
+    def addBuiltinEffectStrip(self, effectType, effectName): # for instance function
+        return self.addBuiltinEffectStrip_ClassLevel(self.context, self.richstrip, self.effect, effectType, effectName)
+    def addBuiltinImageStrip(self, effectName, directory, filenames): # for instance function
+        return self.addBuiltinImageStrip_ClassLevel(self.context, self.richstrip, self.effect, effectName, directory, filenames)
     @classmethod
     def addMaskStripInSubdries(cls, effect:RichStripEffect, data:RichStripData, maskName):
         cls.enterEditMode(richstrip)
@@ -353,7 +370,7 @@ class EffectBase():
     def addExportProperty(cls, effect, data): # add a batch of bool properties with '_export' suffix.
         """
         data: [
-            [ "AttrName", "SeqName", "SeqAttr", IsCustomProp? ]
+            [ "ExportName", "SeqName", "SeqAttr", IsCustomProp? ]
         ]
         """
         mapping = json.loads(effect.EffectMappingJson)
@@ -467,6 +484,7 @@ class EffectBase():
 
 
         richstrip[attrNameWithoutModifier] = val
+        # TODO: _RNA_UI doesn't work in blender 3, need to fix this.
         if richstrip.get("_RNA_UI") == None: richstrip["_RNA_UI"] = {}
         if isBinding:
             if targetSeq.get("_RNA_UI"):

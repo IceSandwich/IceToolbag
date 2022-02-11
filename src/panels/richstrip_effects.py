@@ -10,7 +10,7 @@ class ICETB_PT_RichStripEffects(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_category = "RichStrip"
     bl_idname = "ICETB_PT_RichStripEffects"
-    bl_label = "Effects"
+    bl_label = "Layers"
 
     @classmethod
     def poll(cls, context):

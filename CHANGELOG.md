@@ -22,3 +22,17 @@
 4. fix issue for fastblur and pixelize
 5. control enable/disable effect
 6. support blender 3.0
+
+## 0.0.6 alpha
+
+1. UI improvement.
+2. Add `freeze frame` operator.
+3. Delete unnecessary speed strip to improve efficiency.
+4. Beat match for blender 3.0.
+5. Some api changed. Effects can use handler/signals in some way. Effects can report errors while creating.
+6. Add effect widgets. `Crop box` to crop some area. Add `through`  option to some effects.
+7. Fix bugs in `FastBlur` and `gmic` effect. `GMIC` effect becomes more robust.
+8. Improve g'mic usage. Set filepath in preference window.
+9. Effects autoloader. Programmer haven't to setup effects in `ICETB_EFFECTS_CLASSES`.
+10. `Copy`effect returns but make some limitations to fit the system.
+

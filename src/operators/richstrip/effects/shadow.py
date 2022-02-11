@@ -3,10 +3,6 @@ from .base import EffectBase
 from .widgets import xylock, exportbox
 
 class EffectShadow(EffectBase):
-    """
-        EffectBoolProperty:
-            [0]: Lock size
-    """
     @classmethod
     def getName(cls):
         return "Shadow"
@@ -19,8 +15,8 @@ class EffectShadow(EffectBase):
             [ "strongY", "blur", "size_y", True ], 
             [ "offset", "black", "offset", True ], 
             [ "angle", "black", "angle", True ], 
-            [ "scaleX", "black", "transform.scale_x", False ], 
-            [ "scaleY", "black", "transform.scale_y", False ], 
+            [ "scaleX", "black", "scale_start_x", False ], 
+            [ "scaleY", "black", "scale_start_y", False ], 
             [ "opacity", "blur", "blend_alpha", False ]
         ])
 
@@ -31,13 +27,14 @@ class EffectShadow(EffectBase):
             self.copylayer = self.getEffectStrip(self.richstrip, self.effect, "copy")
             return
         lastseq = self.context.selected_sequences[0]
-        self.blacklayer = self.addBuiltinStrip('TRANSFORM', 'black')
-        self.blurlayer = self.addBuiltinStrip('GAUSSIAN_BLUR', "blur")
+        self.blacklayer = self.addBuiltinEffectStrip('TRANSFORM', 'black')
+        self.blacklayer.use_uniform_scale = True
+        self.blurlayer = self.addBuiltinEffectStrip('GAUSSIAN_BLUR', "blur")
         self.blurlayer.select = False
         lastseq.select = True
         self.context.scene.sequence_editor.active_strip = lastseq
-        self.copylayer = self.addBuiltinStrip('TRANSFORM', 'copy')
-        self.addBuiltinStrip('ADJUSTMENT', "adjust")
+        self.copylayer = self.addBuiltinEffectStrip('TRANSFORM', 'copy')
+        self.addBuiltinEffectStrip('ADJUSTMENT', "adjust")
 
         bc = self.blacklayer.modifiers.new(self.genRegularStripName(self.data.RichStripID, self.effect.EffectId, "bc"), "BRIGHT_CONTRAST")
         bc.bright = 100
@@ -80,46 +77,37 @@ class EffectShadow(EffectBase):
             "isCustomProp": True
         }], "sin(radians(angle))*bind")
 
-        # self.addPropertyWithDriver(self.context, self.blacklayer.transform, "scale_y", [], "self.scale_x")
-
         self.addPropertyWithBinding(self.blurlayer, "size_y", "size_y", [{
             "name": "lock",
             "seqName": self.richstrip.name,
             "seqProp": self.genseqProp(self.effect, "Bool", "union_size_lock"),
             "isCustomProp": False
-        }], "self.size_x if lock == 1 else bind", defaultValue=0.0)
+        }], "self.size_x if lock == 1 else bind", defaultValue=100.0)
 
 
     @classmethod
-    def draw(cls, context, layout, data, effect, richstrip):
+    def draw(cls, context, layout:bpy.types.UILayout, data, effect, richstrip):
         blurlayer = cls.getEffectStrip(richstrip, effect, "blur")
         blacklayer = cls.getEffectStrip(richstrip, effect, "black")
         copylayer = cls.getEffectStrip(richstrip, effect, "copy")
 
-        layout.label(text="Strong:")
-        xylock.drawWithExportBox(layout, richstrip, blurlayer, "size_x", "strongX_export", blurlayer, cls.genbinderName(effect, "size_y", True), "strongY_export", cls.getBoolProperty(effect, "union_size_lock"), "value")
-
-        layout.label(text="Color:")
+        box = layout.box()
+        box.label(text="Shadow", icon="MATERIAL")
         cb = blacklayer.modifiers.get(cls.genRegularStripName(data.RichStripID, effect.EffectId, "cb"))
-        layout.prop(cb.color_balance, "gain", text="Shadow Color")
-        
-        layout.label(text="Offset:")
-        exportbox.draw(layout, richstrip, "offset_export", blacklayer, cls.genbinderName(effect, "offset", True), "Shadow offset")
+        split = box.split(factor=0.2)
+        split.column().label(text="Color")
+        split.column().prop(cb.color_balance, "gain", text="")
+        exportbox.draw(box, richstrip, "offset", blacklayer, cls.genbinderName(effect, "offset", True), "Offset")
+        exportbox.draw(box, richstrip, "angle", blacklayer, cls.genbinderName(effect, "angle", True), "Direction")
+        xylock.drawWithExportBox(box, richstrip, blacklayer, "scale_start_x", "scaleX", blacklayer, "scale_start_y", "scaleY", blacklayer, "use_uniform_scale", union_label="Scale")
+        exportbox.draw(box, richstrip, "opacity", blurlayer, "blend_alpha", "Shadow opacity")
+        box.prop(copylayer, "mute", toggle=1, text="Only Shadow", icon='GHOST_ENABLED')
 
-        layout.label(text="Angle:")
-        exportbox.draw(layout, richstrip, "angle_export", blacklayer, cls.genbinderName(effect, "angle", True), "Shadow direction")
+        layout.separator()
 
-        layout.label(text="Scale:")
-        xylock.drawWithExportBox(layout, richstrip, blacklayer, "scale_start_x", "scaleX_export", blacklayer, "scale_start_y", "scaleY_export", blacklayer, "use_uniform_scale")
-
-        layout.label(text="Opacity:")
-        exportbox.draw(layout, richstrip, "opacity_export", blurlayer, "blend_alpha", "Shadow opacity")
-
-        layout.label(text="Visibility:")
-        layout.prop(copylayer, "mute", toggle=1, text="Only Shadow", icon='GHOST_ENABLED')
-
-        
-        return
+        box = layout.box()
+        box.label(text="Blur", icon="MATFLUID")
+        xylock.drawWithExportBox(box, richstrip, blurlayer, "size_x", "strongX", blurlayer, cls.genbinderName(effect, "size_y", True), "strongY", cls.getBoolProperty(effect, "union_size_lock"), "value", union_label="Strong")
 
     @classmethod
     def update(cls, type, identify, context, data, effect, richstrip):

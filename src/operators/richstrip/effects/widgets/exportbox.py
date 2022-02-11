@@ -1,9 +1,10 @@
 from ..base import EffectBase
+from .....datas.bool_prop import BoolProperty
 import bpy
 
-def draw(layout, richstrip, boolName:str, targetSeq, binderName, text=None):
+def draw(layout, richstrip, exportName:str, targetSeq, binderName:str, text=None):
     effect = richstrip.IceTB_richstrip_data.getSelectedEffect()
-    bproperty = EffectBase.getBoolProperty(effect, boolName)
+    bproperty = EffectBase.getBoolProperty(effect, exportName + "_export")
 
     row = layout.row(align=True)
     if bproperty.value:

@@ -1,6 +1,5 @@
 import bpy
 from .effects import ICETB_EFFECTS_DICTS
-from .effects.gmic import onFrameChanged
 
 class ICETB_OT_RichStrip_Add(bpy.types.Operator):
     bl_idname = "icetb.richstrip_addeffect"
@@ -13,12 +12,20 @@ class ICETB_OT_RichStrip_Add(bpy.types.Operator):
     def poll(cls, context):
         return True
 
+    @classmethod
+    def setupHandlers(cls, is_setup):
+        for clazz in ICETB_EFFECTS_DICTS.values():
+            if hasattr(clazz, "setupHandlers"):
+                clazz.setupHandlers(is_setup)
+
     def execute(self, context):
         if self.effectName in ICETB_EFFECTS_DICTS.keys():
             clazz = ICETB_EFFECTS_DICTS[self.effectName]
-            if clazz._add(context) and clazz.getName() == "GMIC" and onFrameChanged not in bpy.app.handlers.frame_change_post:
-                bpy.app.handlers.frame_change_post.append(onFrameChanged)
-                print("Register handler for framechange")
+            if clazz._add(context, self.report):
+                if hasattr(clazz, 'SIG_Add'):
+                    clazz.SIG_Add(context, True)
+            else:
+                return {'CANCELLED'} # Error messages should be printed by _add function cause it use reportFunc
         else:
             self.report({'ERROR'}, "Unknow effect name called " + self.effectName)
             return {'CANCELLED'}

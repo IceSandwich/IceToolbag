@@ -7,7 +7,7 @@ class ICETB_PT_RichStripEffect(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_category = "RichStrip"
     bl_idname = "ICETB_PT_RichStripEffect"
-    bl_label = "Effect Property"
+    bl_label = "Properties"
 
     @classmethod
     def poll(cls, context):
@@ -31,7 +31,7 @@ class ICETB_PT_RichStripEffect(bpy.types.Panel):
         seleffecttype = data.Effects[curidx].EffectType
         # seleffecttype = data.getSelectedEffectType()
     
-        layout.label(text="Type: " + seleffecttype)
+        # layout.label(text="Type: " + seleffecttype)
         # if curidx == 0:
         #     layout.label(text="Input: Disk Sequences")
         # elif seleffecttype == "Copy":

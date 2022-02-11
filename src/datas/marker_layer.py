@@ -1,4 +1,4 @@
-import bpy
+import bpy, typing
 
 class MarkerLayer_OneMarker(bpy.types.PropertyGroup):
     markerName: bpy.props.StringProperty(name="Marker Name", default="Untitled Marker")
@@ -26,11 +26,11 @@ class MarkerLayer_OneLayer(bpy.types.PropertyGroup):
         if is_setup:
             scene.IceTB_marker_layers_current = bpy.props.IntProperty(name="Current Layer Index", default=0)
             scene.IceTB_marker_layers_data = bpy.props.CollectionProperty(type=MarkerLayer_OneLayer)
-            print("Property defined")
+            print("Property marker defined")
         else:
             scene.IceTB_marker_layers_current = None
             scene.IceTB_marker_layers_data = None
-            print("Property uninstalled")
+            print("Property marker uninstalled")
 
     @classmethod
     def initProperty(cls, ctx):
@@ -57,11 +57,11 @@ class MarkerLayer_OneLayer(bpy.types.PropertyGroup):
         return 'Layer 1'
     
     @classmethod
-    def getProperty(cls, ctx, autocreate=False):
+    def getProperty(cls, ctx, autocreate=False): # -> typing.List[typing.List[MarkerLayer_OneLayer], int]:
         if cls.checkProperty(ctx) == False:
             if autocreate:
                 cls.initProperty(ctx)
-                print("Property created")
+                print("Property marker created")
             else:
                 return None, None
         return ctx.scene.IceTB_marker_layers_data, ctx.scene.IceTB_marker_layers_current

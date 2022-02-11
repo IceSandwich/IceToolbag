@@ -134,6 +134,7 @@ class EffectTemplate(EffectBase):
     def stage_SequenceDefination(self, relinkStage:bool):
         if relinkStage:
             # self.xx = self.getEffectStrip(self.richstrip, self.effect, "xx")
+            return
         else:
             # self.xx = self.addBuiltinStrip('XXX', "xx")
 
