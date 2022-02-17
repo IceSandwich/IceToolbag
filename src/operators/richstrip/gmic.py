@@ -77,7 +77,7 @@ class ICETB_OT_RichStrip_GmicProcessFrame(bpy.types.Operator):
         recoverLayers(data, effectidx, availableList)
 
         command = EffectGMIC.getStrProperty(effect, "parameters").value
-        process = subprocess.Popen("%s --apply -c \"%s\" --output \"%s\" \"%s\""%(gmic_qt_path, command, target, renderfn), stdout=subprocess.PIPE)
+        process = subprocess.Popen("\"%s\" --apply -c \"%s\" --output \"%s\" \"%s\""%(gmic_qt_path, command, target, renderfn), stdout=subprocess.PIPE)
         process.wait()
 
         return {"FINISHED"}
@@ -189,9 +189,13 @@ class ICETB_OT_RichStrip_GmicModifiy(bpy.types.Operator):
 
         gmic_qt_path = getGmicQTPath()
         command = EffectGMIC.getStrProperty(effect, "parameters").value
-        process = subprocess.Popen("%s -c \"%s\" --output \"%s\" \"%s\""%(gmic_qt_path, command, target, renderfn), stdout=subprocess.PIPE)
-        if "Writing output file" not in bytes.decode(process.stdout.read()):
-            print("something wrong with gmic-qt")
+        process = subprocess.Popen("\"%s\" -c \"%s\" --output \"%s\" \"%s\""%(gmic_qt_path, command, target, renderfn), stdout=subprocess.PIPE)
+        gmic_output_console = bytes.decode(process.stdout.read())
+        if "Writing output file" not in gmic_output_console:
+            self.report({'ERROR'}, "Something wrong with G'mic-qt. See console log.")
+            print("G'mic output(reason: no path): >>>")
+            print(gmic_output_console)
+            print("<<<")
             return {'CANCELLED'}
 
         commands = fetchCommandFromGmic()

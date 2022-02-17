@@ -45,7 +45,7 @@ This addon is made for personal use. I'm glad if it can help you. Contributions 
 | Pixelize Effect :key: | Mosaic effect. Some edges might  miss so adjust `FixScale` to fix this. | ![](doc/other.gif)![](doc/pixelize.webp) |
 | Shadow Effect :key: | Add shadow. Shadow color can be animated. | ![](doc/shadow.gif) |
 | Mirror Effect :key: :hammer_and_wrench: | Reflection effect. **Still in progress. Doesn't work properly at the moment.** | ![](doc/mirror.gif) |
-|GMIC :hammer_and_wrench: |**Set GMIC-Qt program filepath in preference window.** Use G'MIC effects in Blender. You can stack them together! **Still in progress. **|![](doc/gmicstack.webp)![](doc/gmicremix.webp)![](doc/gmic1.gif) ![](doc/gmic2.gif) |
+|GMIC :hammer_and_wrench: |**Set GMIC-Qt program filepath in preference window.** Use G'MIC effects in Blender. You can stack them together!  **Still in progress. **|![](doc/gmicstack.webp)![](doc/gmicremix.webp)![](doc/gmic1.gif) ![](doc/gmic2.gif) |
 |Bright/Contrast Effect :key:|Adjust the bright and contrast.||
 | Glow Effect :key: | Blender internal effect. |                    |
 |Gaussian Blur Effect :key:|Blender internal effect.||
@@ -81,7 +81,16 @@ This addon is made for personal use. I'm glad if it can help you. Contributions 
 ## Known Issues :bug:
 
 - While dragging the value, it seems blender costs lots of memory due to cache manager of blender.
-- Seldom blender crash when dragging the value
+
+- Seldom blender crash while dragging the value.
+
+- Render sequences with g'mic effect:
+
+  1. Click `Bake all frames` manually for each richstrip.
+
+  3. Now render animation.
+
+  Otherwise, you will see some errors or nothing.
 
 ## Last things...  :blush:
 

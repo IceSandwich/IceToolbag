@@ -1,7 +1,7 @@
 import bpy, os, uuid
 from .base import EffectBase
 from ....datas import RichStripData, RichStripEffect
-from ....datas.preference_helper import getCacheDir, getGmicQTPath, renderPreview
+from ....datas.preference_helper import getCacheDir, getGmicQTPath, renderPreview, getTempName
 from ....datas.preference_helper import render_output_suffix as gmic_output_suffix
 import subprocess, shutil
 # from .widgets import xylock
@@ -81,11 +81,20 @@ class EffectGMIC(EffectBase):
         renderfn = renderPreview()
 
         # Step 3. Run g'mic qt program
-
-        outputfn = os.path.realpath("output.%s"%gmic_output_suffix)
-        process = subprocess.Popen("%s --output \"%s\" \"%s\""%(gmic_qt_path, outputfn, renderfn), stdout=subprocess.PIPE)
-        if "Writing output file" not in bytes.decode(process.stdout.read()):
-            reportFunc({'ERROR'}, "Something wrong with gmic-qt.")
+        outputfn = getTempName(filename="output.%s"%gmic_output_suffix)
+        process = subprocess.Popen("\"%s\" --output \"%s\" \"%s\""%(gmic_qt_path, outputfn, renderfn), stdout=subprocess.PIPE)
+        gmic_output_console = bytes.decode(process.stdout.read())
+        if "Writing output file" not in gmic_output_console:
+            reportFunc({'ERROR'}, "Something wrong with G'mic-qt. See console log.")
+            print("G'mic output(reason: no path): >>>")
+            print(gmic_output_console)
+            print("<<<")
+            return False
+        if not os.path.exists(outputfn):
+            reportFunc({'ERROR'}, "G'mic doesn't output file. See console log.")
+            print("G'mic output(reason: no file): >>>")
+            print(gmic_output_console)
+            print("<<<")
             return False
 
         # Step 4. Fetch user settings in g'mic
@@ -98,7 +107,6 @@ class EffectGMIC(EffectBase):
             return False
 
         # Step 5. Setup richstrip
-
         richstrip = context.selected_sequences[0]
         data = richstrip.IceTB_richstrip_data
         effect : RichStripEffect = data.addEffect(cls.getName())
@@ -113,11 +121,10 @@ class EffectGMIC(EffectBase):
             os.makedirs(cachedir)
 
         # Step 7. The preview image rendered in step 2 can be reused.
-
         offset = context.scene.frame_current - richstrip.frame_final_start
         target = bpy.path.abspath("%s//%s//%d.%s"%(gmicCache, cacheId, offset, gmic_output_suffix))
-        shutil.copy("output.%s"%gmic_output_suffix, target)
-        print("copy to ", target)
+        shutil.copy(outputfn, target)
+        print("copy from ", outputfn, "to", target)
 
         # Step 8. Set Properties.
         cls.getStrProperty(effect, "parameters").value = command
